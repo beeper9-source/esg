@@ -1977,6 +1977,592 @@ elif menu == "탄소 발자국 챌린지":
         if st.button("📋 탄소 리포트", width='stretch'):
             st.info("탄소 발자국 리포트를 생성했습니다!")
 
+# 사무실 미니 플리마켓 페이지
+elif menu == "사무실 미니 플리마켓":
+    st.title("🛍️ 사무실 미니 플리마켓")
+    st.write("직원 간 중고 물품·책 교환·판매행사를 통해 자원 재활용과 사회적 가치를 창출합니다.")
+
+    # 미니 플리마켓 정보
+    flea_market_info = {
+        "name": "사무실 미니 플리마켓",
+        "description": "직원 간 중고 물품·책 교환·판매행사 개최",
+        "schedule": "매월 둘째 주 금요일 (14:00~17:00)",
+        "goal": "재활용 물품 개수 증가, 모금액을 통한 기부 연결"
+    }
+
+    # 세션 상태 초기화 (샘플 데이터 포함)
+    if 'flea_market_data' not in st.session_state:
+        # 샘플 물품 데이터 (사진 포함)
+        sample_items = [
+            {
+                "id": 1,
+                "name": "MacBook Pro 13인치",
+                "category": "전자제품",
+                "price": 800000,
+                "seller": "김개발",
+                "description": "2020년 모델, 상태 양호",
+                "image": "💻",
+                "status": "판매중",
+                "donation_amount": 0
+            },
+            {
+                "id": 2,
+                "name": "해리포터 시리즈 전집",
+                "category": "도서",
+                "price": 50000,
+                "seller": "이책사",
+                "description": "1-7권 완전판, 새책 수준",
+                "image": "📚",
+                "status": "판매중",
+                "donation_amount": 0
+            },
+            {
+                "id": 3,
+                "name": "나이키 운동화",
+                "category": "의류/신발",
+                "price": 80000,
+                "seller": "박운동",
+                "description": "사이즈 270, 몇 번만 착용",
+                "image": "👟",
+                "status": "판매중",
+                "donation_amount": 0
+            },
+            {
+                "id": 4,
+                "name": "무지 후드티",
+                "category": "의류/신발",
+                "price": 15000,
+                "seller": "최패션",
+                "description": "L사이즈, 깨끗한 상태",
+                "image": "👕",
+                "status": "판매중",
+                "donation_amount": 0
+            },
+            {
+                "id": 5,
+                "name": "아이폰 12 케이스",
+                "category": "전자제품",
+                "price": 10000,
+                "seller": "정폰케이스",
+                "description": "투명 케이스, 스크래치 없음",
+                "image": "📱",
+                "status": "판매중",
+                "donation_amount": 0
+            },
+            {
+                "id": 6,
+                "name": "커피머신",
+                "category": "생활용품",
+                "price": 120000,
+                "seller": "한커피",
+                "description": "네스프레소 캡슐 머신",
+                "image": "☕",
+                "status": "판매중",
+                "donation_amount": 0
+            },
+            {
+                "id": 7,
+                "name": "헤드폰",
+                "category": "전자제품",
+                "price": 60000,
+                "seller": "음악사랑",
+                "description": "소니 무선 헤드폰",
+                "image": "🎧",
+                "status": "판매중",
+                "donation_amount": 0
+            },
+            {
+                "id": 8,
+                "name": "가방",
+                "category": "의류/신발",
+                "price": 40000,
+                "seller": "백백백",
+                "description": "브랜드 백팩, 내구성 좋음",
+                "image": "🎒",
+                "status": "판매중",
+                "donation_amount": 0
+            },
+            {
+                "id": 9,
+                "name": "시계",
+                "category": "액세서리",
+                "price": 200000,
+                "seller": "타임키퍼",
+                "description": "스위스 시계, 정품",
+                "image": "⌚",
+                "status": "판매중",
+                "donation_amount": 0
+            },
+            {
+                "id": 10,
+                "name": "자전거",
+                "category": "운동용품",
+                "price": 300000,
+                "seller": "바이크러버",
+                "description": "로드바이크, 잘 관리됨",
+                "image": "🚲",
+                "status": "판매중",
+                "donation_amount": 0
+            },
+            {
+                "id": 11,
+                "name": "캠핑용품 세트",
+                "category": "생활용품",
+                "price": 150000,
+                "seller": "캠핑러",
+                "description": "텐트, 매트, 랜턴 포함",
+                "image": "⛺",
+                "status": "판매중",
+                "donation_amount": 0
+            },
+            {
+                "id": 12,
+                "name": "게임기",
+                "category": "전자제품",
+                "price": 400000,
+                "seller": "게이머",
+                "description": "플레이스테이션 5, 게임 3개 포함",
+                "image": "🎮",
+                "status": "판매중",
+                "donation_amount": 0
+            }
+        ]
+        
+        # 통계 데이터
+        total_items = len(sample_items)
+        total_value = sum(item['price'] for item in sample_items)
+        sold_items = np.random.randint(3, 8)
+        total_donations = np.random.randint(50000, 150000)
+        
+        st.session_state.flea_market_data = {
+            "items": sample_items,
+            "total_items": total_items,
+            "total_value": total_value,
+            "sold_items": sold_items,
+            "total_donations": total_donations,
+            "participants": np.random.randint(25, 45),
+            "recycling_rate": np.random.randint(85, 95)
+        }
+
+    st.markdown("---")
+
+    # 미니 플리마켓 정보 카드
+    st.subheader("📋 미니 플리마켓 정보")
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.info(f"""
+        **📅 일정**: {flea_market_info['schedule']}
+        
+        **🎯 목표**: {flea_market_info['goal']}
+        
+        **📝 설명**: {flea_market_info['description']}
+        """)
+    
+    with col2:
+        st.success(f"""
+        **♻️ 환경효과**: 중고 물품 재활용으로 자원 절약
+        
+        **🤝 사회효과**: 직원 간 소통과 나눔 문화 조성
+        
+        **💰 경제효과**: 모금액을 통한 사회적 기여
+        """)
+
+    st.markdown("---")
+
+    # 전체 통계
+    st.subheader("📊 전체 통계")
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.metric(
+            label="등록된 물품",
+            value=f"{st.session_state.flea_market_data['total_items']}개",
+            delta=f"+{np.random.randint(2, 8)}개"
+        )
+    
+    with col2:
+        st.metric(
+            label="총 물품 가치",
+            value=f"{st.session_state.flea_market_data['total_value']:,}원",
+            delta=f"+{np.random.randint(100000, 300000):,}원"
+        )
+    
+    with col3:
+        st.metric(
+            label="판매 완료",
+            value=f"{st.session_state.flea_market_data['sold_items']}개",
+            delta=f"+{np.random.randint(1, 4)}개"
+        )
+    
+    with col4:
+        st.metric(
+            label="모금액",
+            value=f"{st.session_state.flea_market_data['total_donations']:,}원",
+            delta=f"+{np.random.randint(10000, 30000):,}원"
+        )
+
+    st.markdown("---")
+
+    # 물품 등록 섹션
+    st.subheader("🛒 새 물품 등록")
+    
+    with st.form("item_registration"):
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            item_name = st.text_input("물품명", placeholder="예: MacBook Pro")
+            category = st.selectbox("카테고리", ["전자제품", "도서", "의류/신발", "생활용품", "액세서리", "운동용품", "기타"])
+            price = st.number_input("가격 (원)", min_value=0, value=0, step=1000)
+        
+        with col2:
+            seller_name = st.text_input("판매자명", placeholder="예: 홍길동")
+            description = st.text_area("물품 설명", placeholder="물품 상태, 특징 등을 입력하세요")
+            donation_rate = st.slider("기부 비율 (%)", 0, 100, 10)
+        
+        submitted = st.form_submit_button("물품 등록")
+        if submitted:
+            if item_name and seller_name and price > 0:
+                new_item = {
+                    "id": len(st.session_state.flea_market_data['items']) + 1,
+                    "name": item_name,
+                    "category": category,
+                    "price": price,
+                    "seller": seller_name,
+                    "description": description,
+                    "image": "📦",  # 기본 아이콘
+                    "status": "판매중",
+                    "donation_amount": int(price * donation_rate / 100)
+                }
+                st.session_state.flea_market_data['items'].append(new_item)
+                st.session_state.flea_market_data['total_items'] += 1
+                st.session_state.flea_market_data['total_value'] += price
+                st.success(f"{item_name}이(가) 성공적으로 등록되었습니다! 🛍️")
+                st.rerun()
+            else:
+                st.error("모든 필수 항목을 입력해주세요!")
+
+    st.markdown("---")
+
+    # 물품 목록
+    st.subheader("🛍️ 등록된 물품 목록")
+    
+    # 카테고리 필터
+    categories = ["전체"] + list(set(item['category'] for item in st.session_state.flea_market_data['items']))
+    selected_category = st.selectbox("카테고리 필터", categories)
+    
+    # 필터링된 물품 목록
+    filtered_items = st.session_state.flea_market_data['items']
+    if selected_category != "전체":
+        filtered_items = [item for item in filtered_items if item['category'] == selected_category]
+    
+    # 물품 카드 표시
+    for i in range(0, len(filtered_items), 3):
+        cols = st.columns(3)
+        for j in range(3):
+            if i + j < len(filtered_items):
+                item = filtered_items[i + j]
+                with cols[j]:
+                    st.markdown(f"""
+                    <div style="
+                        border: 2px solid #e0e0e0;
+                        border-radius: 10px;
+                        padding: 15px;
+                        text-align: center;
+                        background-color: #f8f9fa;
+                        margin-bottom: 10px;
+                    ">
+                        <h3 style="margin: 0; color: #1e3a8a;">{item['image']}</h3>
+                        <h4 style="margin: 10px 0; color: #333;">{item['name']}</h4>
+                        <p style="margin: 5px 0; font-size: 16px; font-weight: bold; color: #28a745;">
+                            {item['price']:,}원
+                        </p>
+                        <p style="margin: 5px 0; font-size: 12px; color: #6c757d;">
+                            {item['category']} | 판매자: {item['seller']}
+                        </p>
+                        <p style="margin: 5px 0; font-size: 12px; color: #6c757d;">
+                            {item['description'][:30]}...
+                        </p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    # 구매 버튼
+                    if st.button(f"구매하기", key=f"buy_{item['id']}", use_container_width=True):
+                        # 구매 처리
+                        st.session_state.flea_market_data['sold_items'] += 1
+                        st.session_state.flea_market_data['total_donations'] += item['donation_amount']
+                        st.session_state.flea_market_data['items'].remove(item)
+                        st.session_state.flea_market_data['total_items'] -= 1
+                        st.session_state.flea_market_data['total_value'] -= item['price']
+                        st.success(f"{item['name']} 구매 완료! 기부금 {item['donation_amount']:,}원이 추가되었습니다! 🎉")
+                        st.rerun()
+
+    st.markdown("---")
+
+    # 카테고리별 통계
+    st.subheader("📊 카테고리별 통계")
+    
+    category_stats = {}
+    for item in st.session_state.flea_market_data['items']:
+        if item['category'] not in category_stats:
+            category_stats[item['category']] = {'count': 0, 'total_value': 0}
+        category_stats[item['category']]['count'] += 1
+        category_stats[item['category']]['total_value'] += item['price']
+    
+    if category_stats:
+        categories = list(category_stats.keys())
+        counts = [category_stats[cat]['count'] for cat in categories]
+        values = [category_stats[cat]['total_value'] for cat in categories]
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            fig_count = px.bar(
+                x=categories,
+                y=counts,
+                title='카테고리별 물품 수',
+                labels={'x': '카테고리', 'y': '물품 수'},
+                color=counts,
+                color_continuous_scale='Blues'
+            )
+            fig_count.update_layout(xaxis_title="카테고리", yaxis_title="물품 수")
+            st.plotly_chart(fig_count, use_container_width=True)
+        
+        with col2:
+            fig_value = px.bar(
+                x=categories,
+                y=values,
+                title='카테고리별 총 가치',
+                labels={'x': '카테고리', 'y': '총 가치 (원)'},
+                color=values,
+                color_continuous_scale='Greens'
+            )
+            fig_value.update_layout(xaxis_title="카테고리", yaxis_title="총 가치 (원)")
+            st.plotly_chart(fig_value, use_container_width=True)
+
+    st.markdown("---")
+
+    # 기부 현황
+    st.subheader("💝 기부 현황")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.metric(
+            label="총 모금액",
+            value=f"{st.session_state.flea_market_data['total_donations']:,}원",
+            delta=f"+{np.random.randint(10000, 30000):,}원"
+        )
+    
+    with col2:
+        st.metric(
+            label="참여자 수",
+            value=f"{st.session_state.flea_market_data['participants']}명",
+            delta=f"+{np.random.randint(2, 8)}명"
+        )
+    
+    with col3:
+        st.metric(
+            label="재활용률",
+            value=f"{st.session_state.flea_market_data['recycling_rate']}%",
+            delta=f"+{np.random.randint(2, 5)}%"
+        )
+
+    st.markdown("---")
+
+    # 기부 연결 정보
+    st.subheader("🤝 기부 연결 정보")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.info("""
+        **🎯 기부 대상**
+        - 지역 아동센터
+        - 환경보호 단체
+        - 사회적 기업 지원
+        - 재해 구호 기금
+        """)
+    
+    with col2:
+        st.success("""
+        **📈 기부 효과**
+        - 사회적 가치 창출
+        - ESG 경영 실현
+        - 직원 참여도 향상
+        - 브랜드 이미지 개선
+        """)
+
+    st.markdown("---")
+
+    # 데이터 관리
+    st.subheader("🔄 데이터 관리")
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        if st.button("📊 데이터 초기화", width='stretch'):
+            # 새로운 샘플 데이터 생성
+            sample_items = [
+                {
+                    "id": 1,
+                    "name": "MacBook Pro 13인치",
+                    "category": "전자제품",
+                    "price": 800000,
+                    "seller": "김개발",
+                    "description": "2020년 모델, 상태 양호",
+                    "image": "💻",
+                    "status": "판매중",
+                    "donation_amount": 0
+                },
+                {
+                    "id": 2,
+                    "name": "해리포터 시리즈 전집",
+                    "category": "도서",
+                    "price": 50000,
+                    "seller": "이책사",
+                    "description": "1-7권 완전판, 새책 수준",
+                    "image": "📚",
+                    "status": "판매중",
+                    "donation_amount": 0
+                },
+                {
+                    "id": 3,
+                    "name": "나이키 운동화",
+                    "category": "의류/신발",
+                    "price": 80000,
+                    "seller": "박운동",
+                    "description": "사이즈 270, 몇 번만 착용",
+                    "image": "👟",
+                    "status": "판매중",
+                    "donation_amount": 0
+                },
+                {
+                    "id": 4,
+                    "name": "무지 후드티",
+                    "category": "의류/신발",
+                    "price": 15000,
+                    "seller": "최패션",
+                    "description": "L사이즈, 깨끗한 상태",
+                    "image": "👕",
+                    "status": "판매중",
+                    "donation_amount": 0
+                },
+                {
+                    "id": 5,
+                    "name": "아이폰 12 케이스",
+                    "category": "전자제품",
+                    "price": 10000,
+                    "seller": "정폰케이스",
+                    "description": "투명 케이스, 스크래치 없음",
+                    "image": "📱",
+                    "status": "판매중",
+                    "donation_amount": 0
+                },
+                {
+                    "id": 6,
+                    "name": "커피머신",
+                    "category": "생활용품",
+                    "price": 120000,
+                    "seller": "한커피",
+                    "description": "네스프레소 캡슐 머신",
+                    "image": "☕",
+                    "status": "판매중",
+                    "donation_amount": 0
+                },
+                {
+                    "id": 7,
+                    "name": "헤드폰",
+                    "category": "전자제품",
+                    "price": 60000,
+                    "seller": "음악사랑",
+                    "description": "소니 무선 헤드폰",
+                    "image": "🎧",
+                    "status": "판매중",
+                    "donation_amount": 0
+                },
+                {
+                    "id": 8,
+                    "name": "가방",
+                    "category": "의류/신발",
+                    "price": 40000,
+                    "seller": "백백백",
+                    "description": "브랜드 백팩, 내구성 좋음",
+                    "image": "🎒",
+                    "status": "판매중",
+                    "donation_amount": 0
+                },
+                {
+                    "id": 9,
+                    "name": "시계",
+                    "category": "액세서리",
+                    "price": 200000,
+                    "seller": "타임키퍼",
+                    "description": "스위스 시계, 정품",
+                    "image": "⌚",
+                    "status": "판매중",
+                    "donation_amount": 0
+                },
+                {
+                    "id": 10,
+                    "name": "자전거",
+                    "category": "운동용품",
+                    "price": 300000,
+                    "seller": "바이크러버",
+                    "description": "로드바이크, 잘 관리됨",
+                    "image": "🚲",
+                    "status": "판매중",
+                    "donation_amount": 0
+                },
+                {
+                    "id": 11,
+                    "name": "캠핑용품 세트",
+                    "category": "생활용품",
+                    "price": 150000,
+                    "seller": "캠핑러",
+                    "description": "텐트, 매트, 랜턴 포함",
+                    "image": "⛺",
+                    "status": "판매중",
+                    "donation_amount": 0
+                },
+                {
+                    "id": 12,
+                    "name": "게임기",
+                    "category": "전자제품",
+                    "price": 400000,
+                    "seller": "게이머",
+                    "description": "플레이스테이션 5, 게임 3개 포함",
+                    "image": "🎮",
+                    "status": "판매중",
+                    "donation_amount": 0
+                }
+            ]
+            
+            total_items = len(sample_items)
+            total_value = sum(item['price'] for item in sample_items)
+            sold_items = np.random.randint(3, 8)
+            total_donations = np.random.randint(50000, 150000)
+            
+            st.session_state.flea_market_data = {
+                "items": sample_items,
+                "total_items": total_items,
+                "total_value": total_value,
+                "sold_items": sold_items,
+                "total_donations": total_donations,
+                "participants": np.random.randint(25, 45),
+                "recycling_rate": np.random.randint(85, 95)
+            }
+            st.success("샘플 데이터로 초기화되었습니다!")
+            st.rerun()
+    
+    with col2:
+        if st.button("📈 통계 새로고침", width='stretch'):
+            st.info("통계 데이터를 새로고침했습니다!")
+    
+    with col3:
+        if st.button("📋 플리마켓 리포트", width='stretch'):
+            st.info("플리마켓 리포트를 생성했습니다!")
+
 # 임직원 아이디어 페이지
 elif menu == "임직원 아이디어":
     st.title("💡 임직원 아이디어")
