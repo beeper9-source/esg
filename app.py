@@ -71,30 +71,54 @@ st.sidebar.markdown("""
 
 st.sidebar.markdown("---")
 
-# 메뉴 항목들
+# 메뉴 항목들 (2단계 구조)
 st.sidebar.markdown("### 📊 메뉴")
-menu_options = [
-    "대시보드", 
-    "Scope 1 (직접 배출)", 
-    "Scope 2 (간접 배출)", 
-    "Scope 3 (밸류체인)", 
-    "순환경제", 
-    "계단 오르기",
-    "일회용품 ZERO 챌린지",
-    "페이퍼리스 데이",
-    "소등·절전 챌린지",
-    "임직원 아이디어"
-]
 
-# 각 메뉴 항목을 버튼으로 표시 (왼쪽 정렬)
-for i, option in enumerate(menu_options):
-    if st.sidebar.button(f"📋 {option}", key=f"menu_{i}", use_container_width=True):
-        st.session_state.selected_menu = option
+# Level 1 메뉴
+level1_menus = {
+    "E : 환경": {
+        "계단 오르기": "계단 오르기",
+        "일회용품 ZERO 챌린지": "일회용품 ZERO 챌린지", 
+        "페이퍼리스 데이": "페이퍼리스 데이",
+        "소등·절전 챌린지": "소등·절전 챌린지",
+        "플로깅 데이": "플로깅 데이",
+        "탄소 발자국 챌린지": "탄소 발자국 챌린지"
+    },
+    "S : 사회": {
+        "사무실 미니 플리마켓": "사무실 미니 플리마켓",
+        "ESG 아이디어 공모전": "임직원 아이디어",
+        "그린리본 인증 캠페인": "그린리본 인증 캠페인",
+        "지역 사회 연계 봉사": "지역 사회 연계 봉사"
+    },
+    "G : 운영정책": {
+        "ESG 성과 공개 플랫폼": "ESG 성과 공개 플랫폼",
+        "ESG 교육 및 퀴즈데이": "ESG 교육 및 퀴즈데이",
+        "디지털 다이어트 캠페인": "디지털 다이어트 캠페인"
+    }
+}
+
+# Level 1 선택
+if 'selected_level1' not in st.session_state:
+    st.session_state.selected_level1 = "E : 환경"
+
+# Level 1 버튼들
+for level1 in level1_menus.keys():
+    if st.sidebar.button(f"📁 {level1}", key=f"level1_{level1}", use_container_width=True):
+        st.session_state.selected_level1 = level1
+        st.rerun()
+
+st.sidebar.markdown("---")
+
+# Level 2 메뉴들
+st.sidebar.markdown(f"**{st.session_state.selected_level1}**")
+for level2_name, level2_value in level1_menus[st.session_state.selected_level1].items():
+    if st.sidebar.button(f"📋 {level2_name}", key=f"level2_{level2_value}", use_container_width=True):
+        st.session_state.selected_menu = level2_value
         st.rerun()
 
 # 기본 메뉴 선택
 if 'selected_menu' not in st.session_state:
-    st.session_state.selected_menu = "대시보드"
+    st.session_state.selected_menu = "계단 오르기"
 
 menu = st.session_state.selected_menu
 
@@ -103,294 +127,10 @@ st.sidebar.markdown(f"**현재 페이지:** {menu}")
 
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 🚀 빠른 액세스")
-if st.sidebar.button("🏠 대시보드로 이동", use_container_width=True):
-    st.session_state.selected_menu = "대시보드"
+if st.sidebar.button("🏠 환경 메뉴로 이동", use_container_width=True):
+    st.session_state.selected_level1 = "E : 환경"
+    st.session_state.selected_menu = "계단 오르기"
     st.rerun()
-
-# 샘플 데이터 로드
-@st.cache_data
-def load_emission_data():
-    """월별 배출량 데이터"""
-    months = ['1월', '2월', '3월', '4월', '5월', '6월']
-    scope1_data = [1200, 1100, 1000, 950, 900, 850]
-    scope2_data = [800, 750, 700, 680, 650, 620]
-    scope3_data = [2000, 1900, 1800, 1750, 1700, 1650]
-    
-    return pd.DataFrame({
-        '월': months,
-        'Scope 1': scope1_data,
-        'Scope 2': scope2_data,
-        'Scope 3': scope3_data
-    })
-
-@st.cache_data
-def load_scope_data():
-    """Scope별 배출량 비율"""
-    return pd.DataFrame({
-        'Scope': ['Scope 1', 'Scope 2', 'Scope 3'],
-        '배출량': [850, 620, 1650],
-        '비율': [27, 20, 53]
-    })
-
-@st.cache_data
-def load_circular_economy_data():
-    """순환경제 데이터"""
-    return pd.DataFrame({
-        '지표': ['재활용률', '매립 제로화', '자원 회수'],
-        '현재값': [85, 100, 92],
-        '목표값': [90, 100, 95]
-    })
-
-# 대시보드 페이지
-if menu == "대시보드":
-    st.markdown('<h1 class="main-header">📊 탄소관리 대시보드</h1>', unsafe_allow_html=True)
-    
-    # KPI 메트릭
-    col1, col2, col3, col4 = st.columns(4)
-    
-    with col1:
-        st.metric(
-            label="총 배출량",
-            value="3,120 tCO2e",
-            delta="-15%",
-            delta_color="normal"
-        )
-    
-    with col2:
-        st.metric(
-            label="재활용률",
-            value="85%",
-            delta="+5%",
-            delta_color="normal"
-        )
-    
-    with col3:
-        st.metric(
-            label="매립 제로화",
-            value="100%",
-            delta="+5%",
-            delta_color="normal"
-        )
-    
-    with col4:
-        st.metric(
-            label="제안된 아이디어",
-            value="127",
-            delta="+15",
-            delta_color="normal"
-        )
-    
-    st.markdown("---")
-    
-    # 차트 섹션
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.subheader("📈 월별 온실가스 배출량 추이")
-        emission_data = load_emission_data()
-        
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(x=emission_data['월'], y=emission_data['Scope 1'], 
-                               mode='lines+markers', name='Scope 1', line=dict(color='#8884d8')))
-        fig.add_trace(go.Scatter(x=emission_data['월'], y=emission_data['Scope 2'], 
-                               mode='lines+markers', name='Scope 2', line=dict(color='#82ca9d')))
-        fig.add_trace(go.Scatter(x=emission_data['월'], y=emission_data['Scope 3'], 
-                               mode='lines+markers', name='Scope 3', line=dict(color='#ffc658')))
-        
-        fig.update_layout(
-            xaxis_title="월",
-            yaxis_title="배출량 (tCO2e)",
-            height=400,
-            showlegend=True
-        )
-        st.plotly_chart(fig, use_container_width=True)
-    
-    with col2:
-        st.subheader("🥧 Scope별 배출량 비율")
-        scope_data = load_scope_data()
-        
-        fig = px.pie(scope_data, values='배출량', names='Scope', 
-                    color_discrete_sequence=['#8884d8', '#82ca9d', '#ffc658'])
-        fig.update_layout(height=400)
-        st.plotly_chart(fig, use_container_width=True)
-    
-    # 순환경제 지표
-    st.subheader("♻️ 순환경제 달성률")
-    circular_data = load_circular_economy_data()
-    
-    col1, col2, col3 = st.columns(3)
-    for i, (idx, row) in enumerate(circular_data.iterrows()):
-        with [col1, col2, col3][i]:
-            progress = row['현재값'] / row['목표값']
-            st.progress(progress)
-            st.write(f"**{row['지표']}**")
-            st.write(f"현재: {row['현재값']}% / 목표: {row['목표값']}%")
-
-# Scope 1 페이지
-elif menu == "Scope 1 (직접 배출)":
-    st.title("🏭 Scope 1 - 직접 배출량 관리")
-    
-    col1, col2 = st.columns([2, 1])
-    
-    with col1:
-        st.subheader("배출량 등록")
-        
-        with st.form("scope1_form"):
-            col1, col2 = st.columns(2)
-            with col1:
-                source = st.selectbox("배출원", ["사무용 차량", "보일러", "발전기", "기타"])
-                emission_type = st.selectbox("배출 유형", ["연료 연소", "공정 배출", "냉매 누출", "기타 직접 배출"])
-            with col2:
-                amount = st.number_input("배출량 (tCO2e)", min_value=0.0, value=0.0, step=0.1)
-                location = st.text_input("위치", value="본사")
-            
-            submitted = st.form_submit_button("등록")
-            if submitted:
-                st.success(f"{source} 배출량 {amount} tCO2e가 등록되었습니다!")
-    
-    with col2:
-        st.subheader("요약")
-        st.metric("총 배출량", "850 tCO2e")
-        st.metric("등록된 기록", "15건")
-        st.metric("전년 대비", "-12%")
-        st.metric("목표 달성률", "85%")
-    
-    # 배출 유형별 차트
-    st.subheader("배출 유형별 현황")
-    emission_types = ['연료 연소', '공정 배출', '냉매 누출', '기타']
-    values = [243.7, 45.2, 12.8, 8.5]
-    
-    fig = px.bar(x=emission_types, y=values, 
-                color=values, color_continuous_scale='Blues')
-    fig.update_layout(xaxis_title="배출 유형", yaxis_title="배출량 (tCO2e)")
-    st.plotly_chart(fig, use_container_width=True)
-
-# Scope 2 페이지
-elif menu == "Scope 2 (간접 배출)":
-    st.title("⚡ Scope 2 - 간접 배출량 관리")
-    
-    col1, col2 = st.columns([2, 1])
-    
-    with col1:
-        st.subheader("에너지 사용량 등록")
-        
-        with st.form("scope2_form"):
-            col1, col2 = st.columns(2)
-            with col1:
-                energy_type = st.selectbox("에너지 유형", ["전력", "냉난방", "증기", "기타 에너지"])
-                supplier = st.text_input("공급원", value="한국전력공사")
-            with col2:
-                amount = st.number_input("사용량 (kWh)", min_value=0, value=0, step=1)
-                renewable = st.checkbox("재생에너지")
-            
-            submitted = st.form_submit_button("등록")
-            if submitted:
-                energy_type_text = "재생에너지" if renewable else "일반에너지"
-                st.success(f"{energy_type} {amount} kWh ({energy_type_text})가 등록되었습니다!")
-    
-    with col2:
-        st.subheader("요약")
-        st.metric("총 에너지 사용량", "22,500 kWh")
-        st.metric("재생에너지 비율", "35.1%")
-        st.metric("전년 대비", "-8%")
-        st.metric("목표 달성률", "92%")
-    
-    # 월별 에너지 사용량 추이
-    st.subheader("월별 에너지 사용량 추이")
-    months = ['1월', '2월', '3월', '4월', '5월', '6월']
-    total_usage = [22000, 21000, 20000, 19500, 19000, 18500]
-    renewable_usage = [5000, 4800, 5200, 5500, 6000, 6500]
-    
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(x=months, y=total_usage, mode='lines+markers', 
-                            name='총 사용량', line=dict(color='#8884d8')))
-    fig.add_trace(go.Scatter(x=months, y=renewable_usage, mode='lines+markers', 
-                            name='재생에너지', line=dict(color='#82ca9d')))
-    
-    fig.update_layout(xaxis_title="월", yaxis_title="사용량 (kWh)", height=400)
-    st.plotly_chart(fig, use_container_width=True)
-
-# Scope 3 페이지
-elif menu == "Scope 3 (밸류체인)":
-    st.title("🌐 Scope 3 - 밸류체인 배출량 관리")
-    
-    col1, col2 = st.columns([2, 1])
-    
-    with col1:
-        st.subheader("배출량 등록")
-        
-        with st.form("scope3_form"):
-            col1, col2 = st.columns(2)
-            with col1:
-                category = st.selectbox("카테고리", ["구매 상품 및 서비스", "운송 및 배송", "출장", "폐기물 처리", "임직원 출퇴근"])
-                activity = st.text_input("활동", value="IT 장비 구매")
-            with col2:
-                amount = st.number_input("배출량 (tCO2e)", min_value=0.0, value=0.0, step=0.1)
-                supplier = st.text_input("공급업체", value="삼성전자")
-            
-            submitted = st.form_submit_button("등록")
-            if submitted:
-                st.success(f"{category} - {activity} 배출량 {amount} tCO2e가 등록되었습니다!")
-    
-    with col2:
-        st.subheader("요약")
-        st.metric("총 배출량", "3,120 tCO2e")
-        st.metric("활성 배출량", "2,100 tCO2e")
-        st.metric("감축된 배출량", "1,020 tCO2e")
-        st.metric("감축률", "32.7%")
-    
-    # 카테고리별 배출량
-    st.subheader("카테고리별 배출량")
-    categories = ['구매 상품 및 서비스', '운송 및 배송', '출장', '폐기물 처리', '임직원 출퇴근']
-    values = [450.2, 320.5, 180.3, 95.8, 120.5]
-    
-    fig = px.bar(x=categories, y=values, 
-                color=values, color_continuous_scale='Oranges')
-    fig.update_layout(xaxis_title="카테고리", yaxis_title="배출량 (tCO2e)")
-    fig.update_xaxes(tickangle=45)
-    st.plotly_chart(fig, use_container_width=True)
-
-# 순환경제 페이지
-elif menu == "순환경제":
-    st.title("♻️ 순환경제 관리")
-    
-    # 매립 제로화 알림
-    st.success("🎉 매립 제로화 달성! 모든 폐기물이 재활용되거나 친환경적으로 처리되고 있습니다.")
-    
-    col1, col2 = st.columns([2, 1])
-    
-    with col1:
-        st.subheader("폐기물 등록")
-        
-        with st.form("waste_form"):
-            col1, col2 = st.columns(2)
-            with col1:
-                waste_type = st.selectbox("폐기물 유형", ["종이", "플라스틱", "전자폐기물", "음식물 쓰레기", "유리", "금속"])
-                disposal_method = st.selectbox("처리 방법", ["재활용", "퇴비화", "에너지 회수", "매립"])
-            with col2:
-                amount = st.number_input("양 (kg)", min_value=0, value=0, step=1)
-                recycling_rate = st.slider("재활용률 (%)", 0, 100, 85)
-            
-            submitted = st.form_submit_button("등록")
-            if submitted:
-                st.success(f"{waste_type} {amount} kg ({disposal_method})가 등록되었습니다!")
-    
-    with col2:
-        st.subheader("요약")
-        st.metric("총 폐기물", "4,020 kg")
-        st.metric("재활용률", "85.0%")
-        st.metric("매립 제로화", "100%")
-        st.metric("자원 회수", "92%")
-    
-    # 폐기물 처리 방법별 비율
-    st.subheader("폐기물 처리 방법별 비율")
-    methods = ['재활용', '퇴비화', '에너지 회수', '매립']
-    values = [3420, 600, 200, 0]
-    colors = ['#82ca9d', '#8884d8', '#ffc658', '#ff7300']
-    
-    fig = px.pie(values=values, names=methods, color_discrete_sequence=colors)
-    fig.update_layout(height=400)
-    st.plotly_chart(fig, use_container_width=True)
 
 # 계단 오르기 페이지
 elif menu == "계단 오르기":
@@ -1598,6 +1338,658 @@ elif menu == "소등·절전 챌린지":
     with col3:
         if st.button("📋 절전 리포트", width='stretch'):
             st.info("절전 리포트를 생성했습니다!")
+
+# 플로깅 데이 페이지
+elif menu == "플로깅 데이":
+    st.title("🚮 플로깅 데이 (Plogging Day)")
+    st.write("점심시간에 사무실 주변 쓰레기 줍기 산책을 통해 환경정화 활동을 실시합니다.")
+
+    # 플로깅 데이 정보
+    plogging_info = {
+        "name": "플로깅 데이",
+        "description": "점심시간에 사무실 주변 쓰레기 줍기 산책 실시",
+        "schedule": "매주 화요일, 목요일 점심시간 (12:00~13:00)",
+        "goal": "분리 배출 쓰레기 총량 감소, 참여 직원 수 증가"
+    }
+
+    # 세션 상태 초기화 (샘플 데이터 포함)
+    if 'plogging_data' not in st.session_state:
+        # 샘플 데이터 생성
+        total_participants = np.random.randint(45, 80)
+        total_waste_collected = np.random.randint(120, 200)  # kg
+        plastic_bottles = np.random.randint(30, 60)
+        cans = np.random.randint(20, 40)
+        paper_waste = np.random.randint(15, 30)
+        other_waste = np.random.randint(55, 70)
+        
+        # 주간 데이터 생성
+        weekly_data = []
+        days = ['월', '화', '수', '목', '금']
+        for i, day in enumerate(days):
+            if day in ['화', '목']:  # 플로깅 데이
+                weekly_data.append({
+                    'day': day,
+                    'participants': np.random.randint(8, 15),
+                    'waste_collected': np.random.randint(20, 35),
+                    'is_plogging_day': True
+                })
+            else:
+                weekly_data.append({
+                    'day': day,
+                    'participants': 0,
+                    'waste_collected': 0,
+                    'is_plogging_day': False
+                })
+        
+        st.session_state.plogging_data = {
+            "total_participants": total_participants,
+            "total_waste_collected": total_waste_collected,
+            "plastic_bottles": plastic_bottles,
+            "cans": cans,
+            "paper_waste": paper_waste,
+            "other_waste": other_waste,
+            "weekly_data": weekly_data,
+            "participation_rate": np.random.randint(75, 90)
+        }
+
+    st.markdown("---")
+
+    # 플로깅 데이 정보 카드
+    st.subheader("📋 플로깅 데이 정보")
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.info(f"""
+        **📅 일정**: {plogging_info['schedule']}
+        
+        **🎯 목표**: {plogging_info['goal']}
+        
+        **📝 설명**: {plogging_info['description']}
+        """)
+    
+    with col2:
+        st.success(f"""
+        **🌱 환경효과**: 쓰레기 수거로 지역 환경 정화
+        
+        **🏃 건강효과**: 산책을 통한 건강 증진
+        
+        **🤝 사회효과**: 지역사회 환경 보호 기여
+        """)
+
+    st.markdown("---")
+
+    # 참여 등록 섹션
+    st.subheader("🎮 참여 등록")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.markdown("""
+        <div style="
+            border: 2px solid #28a745;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            background-color: #d4edda;
+            margin-bottom: 10px;
+        ">
+            <h3 style="margin: 0; color: #155724;">🚮</h3>
+            <h4 style="margin: 10px 0; color: #155724;">플로깅 참여</h4>
+            <p style="margin: 5px 0; font-size: 16px; color: #155724;">
+                참여자: {participants}명
+            </p>
+        </div>
+        """.format(participants=st.session_state.plogging_data['total_participants']), unsafe_allow_html=True)
+        
+        if st.button("플로깅 참여", key="plogging_participate", use_container_width=True):
+            st.session_state.plogging_data['total_participants'] += 1
+            st.success("플로깅 데이 참여 등록 완료! 🌱")
+            st.rerun()
+    
+    with col2:
+        st.markdown("""
+        <div style="
+            border: 2px solid #17a2b8;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            background-color: #d1ecf1;
+            margin-bottom: 10px;
+        ">
+            <h3 style="margin: 0; color: #0c5460;">♻️</h3>
+            <h4 style="margin: 10px 0; color: #0c5460;">쓰레기 수거</h4>
+            <p style="margin: 5px 0; font-size: 16px; color: #0c5460;">
+                수거량: {waste}kg
+            </p>
+        </div>
+        """.format(waste=st.session_state.plogging_data['total_waste_collected']), unsafe_allow_html=True)
+        
+        if st.button("쓰레기 수거 등록", key="waste_collect", use_container_width=True):
+            additional_waste = np.random.randint(5, 15)
+            st.session_state.plogging_data['total_waste_collected'] += additional_waste
+            st.success(f"쓰레기 {additional_waste}kg 수거 등록 완료! ♻️")
+            st.rerun()
+    
+    with col3:
+        st.markdown("""
+        <div style="
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            background-color: #fff3cd;
+            margin-bottom: 10px;
+        ">
+            <h3 style="margin: 0; color: #856404;">📊</h3>
+            <h4 style="margin: 10px 0; color: #856404;">참여율</h4>
+            <p style="margin: 5px 0; font-size: 16px; color: #856404;">
+                참여율: {rate}%
+            </p>
+        </div>
+        """.format(rate=st.session_state.plogging_data['participation_rate']), unsafe_allow_html=True)
+        
+        if st.button("통계 새로고침", key="refresh_stats", use_container_width=True):
+            st.info("통계 데이터를 새로고침했습니다!")
+
+    st.markdown("---")
+
+    # 주간 현황
+    st.subheader("📊 주간 현황")
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.metric(
+            label="총 참여자",
+            value=f"{st.session_state.plogging_data['total_participants']}명",
+            delta=f"+{np.random.randint(2, 8)}명"
+        )
+    
+    with col2:
+        st.metric(
+            label="쓰레기 수거량",
+            value=f"{st.session_state.plogging_data['total_waste_collected']}kg",
+            delta=f"+{np.random.randint(5, 15)}kg"
+        )
+    
+    with col3:
+        st.metric(
+            label="참여율",
+            value=f"{st.session_state.plogging_data['participation_rate']}%",
+            delta=f"+{np.random.randint(3, 8)}%"
+        )
+    
+    with col4:
+        st.metric(
+            label="환경 점수",
+            value=f"{st.session_state.plogging_data['total_waste_collected'] * 2}점",
+            delta=f"+{np.random.randint(10, 30)}점"
+        )
+
+    st.markdown("---")
+
+    # 요일별 참여 현황
+    st.subheader("📅 요일별 참여 현황")
+    
+    weekly_df = pd.DataFrame(st.session_state.plogging_data['weekly_data'])
+    
+    fig_weekly = px.bar(
+        weekly_df,
+        x='day',
+        y='participants',
+        title='요일별 플로깅 참여자 수',
+        color='is_plogging_day',
+        color_discrete_map={True: '#28a745', False: '#6c757d'},
+        labels={'participants': '참여자 수', 'day': '요일'}
+    )
+    fig_weekly.update_layout(
+        xaxis_title="요일",
+        yaxis_title="참여자 수"
+    )
+    st.plotly_chart(fig_weekly, use_container_width=True)
+
+    st.markdown("---")
+
+    # 쓰레기 유형별 수거 현황
+    st.subheader("♻️ 쓰레기 유형별 수거 현황")
+    
+    waste_types = ['플라스틱 병', '캔', '종이류', '기타']
+    waste_amounts = [
+        st.session_state.plogging_data['plastic_bottles'],
+        st.session_state.plogging_data['cans'],
+        st.session_state.plogging_data['paper_waste'],
+        st.session_state.plogging_data['other_waste']
+    ]
+    
+    fig_waste = px.pie(
+        values=waste_amounts,
+        names=waste_types,
+        title='쓰레기 유형별 수거 비율',
+        color_discrete_sequence=['#82ca9d', '#8884d8', '#ffc658', '#ff7300']
+    )
+    fig_waste.update_layout(height=400)
+    st.plotly_chart(fig_waste, use_container_width=True)
+
+    st.markdown("---")
+
+    # 환경 효과
+    st.subheader("🌱 환경 효과")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    total_waste = st.session_state.plogging_data['total_waste_collected']
+    
+    with col1:
+        st.metric(
+            label="CO2 절약",
+            value=f"{total_waste * 0.3:.1f}kg",
+            delta="월간 절약"
+        )
+    
+    with col2:
+        st.metric(
+            label="재활용률",
+            value=f"{(total_waste * 0.7):.1f}kg",
+            delta="재활용 가능"
+        )
+    
+    with col3:
+        st.metric(
+            label="환경 점수",
+            value=f"{total_waste * 2}점",
+            delta="누적 점수"
+        )
+
+    st.markdown("---")
+
+    # 데이터 관리
+    st.subheader("🔄 데이터 관리")
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        if st.button("📊 데이터 초기화", width='stretch'):
+            # 새로운 샘플 데이터 생성
+            total_participants = np.random.randint(45, 80)
+            total_waste_collected = np.random.randint(120, 200)
+            plastic_bottles = np.random.randint(30, 60)
+            cans = np.random.randint(20, 40)
+            paper_waste = np.random.randint(15, 30)
+            other_waste = np.random.randint(55, 70)
+            
+            weekly_data = []
+            days = ['월', '화', '수', '목', '금']
+            for i, day in enumerate(days):
+                if day in ['화', '목']:
+                    weekly_data.append({
+                        'day': day,
+                        'participants': np.random.randint(8, 15),
+                        'waste_collected': np.random.randint(20, 35),
+                        'is_plogging_day': True
+                    })
+                else:
+                    weekly_data.append({
+                        'day': day,
+                        'participants': 0,
+                        'waste_collected': 0,
+                        'is_plogging_day': False
+                    })
+            
+            st.session_state.plogging_data = {
+                "total_participants": total_participants,
+                "total_waste_collected": total_waste_collected,
+                "plastic_bottles": plastic_bottles,
+                "cans": cans,
+                "paper_waste": paper_waste,
+                "other_waste": other_waste,
+                "weekly_data": weekly_data,
+                "participation_rate": np.random.randint(75, 90)
+            }
+            st.success("샘플 데이터로 초기화되었습니다!")
+            st.rerun()
+    
+    with col2:
+        if st.button("📈 통계 새로고침", width='stretch'):
+            st.info("통계 데이터를 새로고침했습니다!")
+    
+    with col3:
+        if st.button("📋 플로깅 리포트", width='stretch'):
+            st.info("플로깅 리포트를 생성했습니다!")
+
+# 탄소 발자국 챌린지 페이지
+elif menu == "탄소 발자국 챌린지":
+    st.title("👣 탄소 발자국 챌린지")
+    st.write("엘리베이터 대신 계단 이용, 대중교통 출근, 자전거 이용을 독려하여 탄소 감축을 실현합니다.")
+
+    # 탄소 발자국 챌린지 정보
+    carbon_footprint_info = {
+        "name": "탄소 발자국 챌린지",
+        "description": "엘리베이터 대신 계단 이용, 대중교통 출근, 자전거 이용 독려",
+        "target": "일상생활에서의 탄소 감축 실천",
+        "goal": "참여 건수 증가, 출퇴근 교통수단별 탄소감축량 계산"
+    }
+
+    # 세션 상태 초기화 (샘플 데이터 포함)
+    if 'carbon_footprint_data' not in st.session_state:
+        # 샘플 데이터 생성
+        total_participations = np.random.randint(200, 350)
+        stairs_usage = np.random.randint(80, 120)
+        public_transport = np.random.randint(60, 100)
+        bicycle_usage = np.random.randint(40, 80)
+        
+        # 교통수단별 탄소 감축량 (kg CO2)
+        carbon_savings = {
+            'stairs': stairs_usage * 0.05,  # 계단 이용시 엘리베이터 대비 절약
+            'public_transport': public_transport * 0.3,  # 대중교통 이용시 개인차 대비 절약
+            'bicycle': bicycle_usage * 0.2  # 자전거 이용시 개인차 대비 절약
+        }
+        
+        # 일별 데이터 생성 (최근 30일)
+        daily_data = []
+        for i in range(30):
+            day = (datetime.now() - timedelta(days=29-i)).strftime("%m/%d")
+            weekday = (datetime.now() - timedelta(days=29-i)).weekday()
+            
+            if weekday < 5:  # 평일
+                daily_participations = np.random.randint(8, 15)
+                daily_carbon_saved = daily_participations * np.random.uniform(0.1, 0.3)
+            else:  # 주말
+                daily_participations = np.random.randint(3, 8)
+                daily_carbon_saved = daily_participations * np.random.uniform(0.1, 0.2)
+            
+            daily_data.append({
+                'date': day,
+                'participations': daily_participations,
+                'carbon_saved': daily_carbon_saved,
+                'is_weekday': weekday < 5
+            })
+        
+        st.session_state.carbon_footprint_data = {
+            "total_participations": total_participations,
+            "stairs_usage": stairs_usage,
+            "public_transport": public_transport,
+            "bicycle_usage": bicycle_usage,
+            "carbon_savings": carbon_savings,
+            "daily_data": daily_data,
+            "participation_rate": np.random.randint(70, 85)
+        }
+
+    st.markdown("---")
+
+    # 탄소 발자국 챌린지 정보 카드
+    st.subheader("📋 탄소 발자국 챌린지 정보")
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.info(f"""
+        **🎯 목표**: {carbon_footprint_info['target']}
+        
+        **📊 지표**: {carbon_footprint_info['goal']}
+        
+        **📝 설명**: {carbon_footprint_info['description']}
+        """)
+    
+    with col2:
+        st.success(f"""
+        **🌱 환경효과**: 일상생활에서의 탄소 감축 실천
+        
+        **🏃 건강효과**: 계단 이용, 자전거 타기로 건강 증진
+        
+        **💰 경제효과**: 교통비 절약, 에너지 비용 절감
+        """)
+
+    st.markdown("---")
+
+    # 참여 등록 섹션
+    st.subheader("🎮 참여 등록")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.markdown("""
+        <div style="
+            border: 2px solid #28a745;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            background-color: #d4edda;
+            margin-bottom: 10px;
+        ">
+            <h3 style="margin: 0; color: #155724;">🪜</h3>
+            <h4 style="margin: 10px 0; color: #155724;">계단 이용</h4>
+            <p style="margin: 5px 0; font-size: 16px; color: #155724;">
+                참여: {stairs}회
+            </p>
+        </div>
+        """.format(stairs=st.session_state.carbon_footprint_data['stairs_usage']), unsafe_allow_html=True)
+        
+        if st.button("계단 이용 등록", key="stairs_usage", use_container_width=True):
+            st.session_state.carbon_footprint_data['stairs_usage'] += 1
+            st.session_state.carbon_footprint_data['total_participations'] += 1
+            st.session_state.carbon_footprint_data['carbon_savings']['stairs'] += 0.05
+            st.success("계단 이용 등록 완료! 🪜")
+            st.rerun()
+    
+    with col2:
+        st.markdown("""
+        <div style="
+            border: 2px solid #007bff;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            background-color: #cce7ff;
+            margin-bottom: 10px;
+        ">
+            <h3 style="margin: 0; color: #004085;">🚌</h3>
+            <h4 style="margin: 10px 0; color: #004085;">대중교통 이용</h4>
+            <p style="margin: 5px 0; font-size: 16px; color: #004085;">
+                참여: {transport}회
+            </p>
+        </div>
+        """.format(transport=st.session_state.carbon_footprint_data['public_transport']), unsafe_allow_html=True)
+        
+        if st.button("대중교통 이용 등록", key="public_transport", use_container_width=True):
+            st.session_state.carbon_footprint_data['public_transport'] += 1
+            st.session_state.carbon_footprint_data['total_participations'] += 1
+            st.session_state.carbon_footprint_data['carbon_savings']['public_transport'] += 0.3
+            st.success("대중교통 이용 등록 완료! 🚌")
+            st.rerun()
+    
+    with col3:
+        st.markdown("""
+        <div style="
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            background-color: #fff3cd;
+            margin-bottom: 10px;
+        ">
+            <h3 style="margin: 0; color: #856404;">🚲</h3>
+            <h4 style="margin: 10px 0; color: #856404;">자전거 이용</h4>
+            <p style="margin: 5px 0; font-size: 16px; color: #856404;">
+                참여: {bicycle}회
+            </p>
+        </div>
+        """.format(bicycle=st.session_state.carbon_footprint_data['bicycle_usage']), unsafe_allow_html=True)
+        
+        if st.button("자전거 이용 등록", key="bicycle_usage", use_container_width=True):
+            st.session_state.carbon_footprint_data['bicycle_usage'] += 1
+            st.session_state.carbon_footprint_data['total_participations'] += 1
+            st.session_state.carbon_footprint_data['carbon_savings']['bicycle'] += 0.2
+            st.success("자전거 이용 등록 완료! 🚲")
+            st.rerun()
+
+    st.markdown("---")
+
+    # 전체 현황
+    st.subheader("📊 전체 현황")
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.metric(
+            label="총 참여 건수",
+            value=f"{st.session_state.carbon_footprint_data['total_participations']}회",
+            delta=f"+{np.random.randint(5, 15)}회"
+        )
+    
+    with col2:
+        total_carbon_saved = sum(st.session_state.carbon_footprint_data['carbon_savings'].values())
+        st.metric(
+            label="총 탄소 절약",
+            value=f"{total_carbon_saved:.1f}kg",
+            delta=f"+{np.random.uniform(1, 3):.1f}kg"
+        )
+    
+    with col3:
+        st.metric(
+            label="참여율",
+            value=f"{st.session_state.carbon_footprint_data['participation_rate']}%",
+            delta=f"+{np.random.randint(2, 8)}%"
+        )
+    
+    with col4:
+        st.metric(
+            label="환경 점수",
+            value=f"{int(total_carbon_saved * 10)}점",
+            delta=f"+{np.random.randint(10, 30)}점"
+        )
+
+    st.markdown("---")
+
+    # 교통수단별 탄소 절약량
+    st.subheader("🚗 교통수단별 탄소 절약량")
+    
+    transport_types = ['계단 이용', '대중교통', '자전거']
+    carbon_amounts = [
+        st.session_state.carbon_footprint_data['carbon_savings']['stairs'],
+        st.session_state.carbon_footprint_data['carbon_savings']['public_transport'],
+        st.session_state.carbon_footprint_data['carbon_savings']['bicycle']
+    ]
+    
+    fig_carbon = px.bar(
+        x=transport_types,
+        y=carbon_amounts,
+        title='교통수단별 탄소 절약량',
+        labels={'x': '교통수단', 'y': '탄소 절약량 (kg CO2)'},
+        color=carbon_amounts,
+        color_continuous_scale='Greens'
+    )
+    fig_carbon.update_layout(
+        xaxis_title="교통수단",
+        yaxis_title="탄소 절약량 (kg CO2)"
+    )
+    st.plotly_chart(fig_carbon, use_container_width=True)
+
+    st.markdown("---")
+
+    # 일별 참여 현황
+    st.subheader("📅 일별 참여 현황")
+    
+    daily_df = pd.DataFrame(st.session_state.carbon_footprint_data['daily_data'])
+    
+    fig_daily = px.line(
+        daily_df,
+        x='date',
+        y='participations',
+        title='일별 참여 건수 추이',
+        markers=True,
+        labels={'participations': '참여 건수', 'date': '날짜'},
+        color_discrete_sequence=['#28a745']
+    )
+    fig_daily.update_layout(
+        xaxis_title="날짜",
+        yaxis_title="참여 건수",
+        xaxis_tickangle=45
+    )
+    st.plotly_chart(fig_daily, use_container_width=True)
+
+    st.markdown("---")
+
+    # 환경 효과
+    st.subheader("🌱 환경 효과")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.metric(
+            label="CO2 절약",
+            value=f"{total_carbon_saved:.1f}kg",
+            delta="월간 절약"
+        )
+    
+    with col2:
+        st.metric(
+            label="나무 보호",
+            value=f"{total_carbon_saved * 0.02:.1f}그루",
+            delta="월간 보호"
+        )
+    
+    with col3:
+        st.metric(
+            label="환경등가",
+            value=f"{total_carbon_saved * 0.1:.1f}L",
+            delta="휘발유 절약"
+        )
+
+    st.markdown("---")
+
+    # 데이터 관리
+    st.subheader("🔄 데이터 관리")
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        if st.button("📊 데이터 초기화", width='stretch'):
+            # 새로운 샘플 데이터 생성
+            total_participations = np.random.randint(200, 350)
+            stairs_usage = np.random.randint(80, 120)
+            public_transport = np.random.randint(60, 100)
+            bicycle_usage = np.random.randint(40, 80)
+            
+            carbon_savings = {
+                'stairs': stairs_usage * 0.05,
+                'public_transport': public_transport * 0.3,
+                'bicycle': bicycle_usage * 0.2
+            }
+            
+            daily_data = []
+            for i in range(30):
+                day = (datetime.now() - timedelta(days=29-i)).strftime("%m/%d")
+                weekday = (datetime.now() - timedelta(days=29-i)).weekday()
+                
+                if weekday < 5:
+                    daily_participations = np.random.randint(8, 15)
+                    daily_carbon_saved = daily_participations * np.random.uniform(0.1, 0.3)
+                else:
+                    daily_participations = np.random.randint(3, 8)
+                    daily_carbon_saved = daily_participations * np.random.uniform(0.1, 0.2)
+                
+                daily_data.append({
+                    'date': day,
+                    'participations': daily_participations,
+                    'carbon_saved': daily_carbon_saved,
+                    'is_weekday': weekday < 5
+                })
+            
+            st.session_state.carbon_footprint_data = {
+                "total_participations": total_participations,
+                "stairs_usage": stairs_usage,
+                "public_transport": public_transport,
+                "bicycle_usage": bicycle_usage,
+                "carbon_savings": carbon_savings,
+                "daily_data": daily_data,
+                "participation_rate": np.random.randint(70, 85)
+            }
+            st.success("샘플 데이터로 초기화되었습니다!")
+            st.rerun()
+    
+    with col2:
+        if st.button("📈 통계 새로고침", width='stretch'):
+            st.info("통계 데이터를 새로고침했습니다!")
+    
+    with col3:
+        if st.button("📋 탄소 리포트", width='stretch'):
+            st.info("탄소 발자국 리포트를 생성했습니다!")
 
 # 임직원 아이디어 페이지
 elif menu == "임직원 아이디어":
