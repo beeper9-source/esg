@@ -223,6 +223,9 @@ elif menu == "계단 오르기":
                 <p style="margin: 5px 0; font-size: 18px; font-weight: bold; color: #28a745;">
                     참여자: {building_info['participants']}명
                 </p>
+                <p style="margin: 5px 0; font-size: 14px; font-weight: bold; color: #dc3545;">
+                    예상감축량: {building_info['participants'] * 0.3:.1f}kg CO₂eq
+                </p>
             </div>
             """, unsafe_allow_html=True)
             
@@ -264,9 +267,9 @@ elif menu == "계단 오르기":
     
     with col4:
         st.metric(
-            label="탄소 절약",
-            value=f"{total_participants * 0.1:.1f}kg",
-            delta="CO2"
+            label="예상감축량",
+            value=f"{total_participants * 0.3:.1f}kg",
+            delta="CO₂eq"
         )
 
     st.markdown("---")
@@ -291,7 +294,85 @@ elif menu == "계단 오르기":
     )
     st.plotly_chart(fig_stairs, use_container_width=True)
 
+    # 사옥별 예상감축량 차트
+    st.subheader("🌱 사옥별 예상감축량")
+    
+    building_names = list(st.session_state.stair_climbing_data.keys())
+    reduction_amounts = [building['participants'] * 0.3 for building in st.session_state.stair_climbing_data.values()]
+    
+    fig_reduction = px.bar(
+        x=building_names,
+        y=reduction_amounts,
+        title='사옥별 예상감축량 (kg CO₂eq)',
+        labels={'x': '사옥', 'y': '예상감축량 (kg CO₂eq)'},
+        color=reduction_amounts,
+        color_continuous_scale='Reds'
+    )
+    fig_reduction.update_layout(
+        xaxis_title="사옥",
+        yaxis_title="예상감축량 (kg CO₂eq)"
+    )
+    st.plotly_chart(fig_reduction, use_container_width=True)
+
     st.markdown("---")
+
+    # 지표 산식 설명
+    st.subheader("📊 예상감축량 지표 산식")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.info("""
+        **🌱 탄소 감축량 계산 공식**
+        
+        ```
+        예상감축량 = 참여자 수 × 0.3kg CO₂eq
+        ```
+        
+        **📋 계산 기준**
+        - 계단 이용 1회당: 0.3kg CO₂eq
+        - 엘리베이터 대신 계단 이용 시 절약되는 탄소량
+        - 국제 탄소 배출 계수 기준 적용
+        """)
+    
+    with col2:
+        st.success("""
+        **🎯 환경 효과**
+        
+        • **에너지 절약**: 엘리베이터 사용량 감소
+        • **건강 증진**: 계단 오르기로 체력 향상
+        • **탄소 감축**: 직접적인 CO₂ 배출량 감소
+        • **친환경 문화**: 지속가능한 생활습관 형성
+        """)
+    
+    # 실시간 계산 예시
+    st.markdown("---")
+    st.subheader("🧮 실시간 계산 예시")
+    
+    example_participants = total_participants
+    example_reduction = example_participants * 0.3
+    
+    st.markdown(f"""
+    <div style="
+        border: 2px solid #28a745;
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        background-color: #d4edda;
+        margin-bottom: 10px;
+    ">
+        <h3 style="margin: 0; color: #155724;">📈 현재 상황</h3>
+        <p style="margin: 10px 0; font-size: 18px; color: #155724;">
+            <strong>총 참여자:</strong> {example_participants}명
+        </p>
+        <p style="margin: 10px 0; font-size: 18px; color: #155724;">
+            <strong>계산식:</strong> {example_participants}명 × 0.3kg CO₂eq
+        </p>
+        <p style="margin: 10px 0; font-size: 24px; font-weight: bold; color: #155724;">
+            <strong>= {example_reduction:.1f}kg CO₂eq</strong>
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
 
     # 리셋 버튼
     st.subheader("🔄 데이터 관리")
@@ -369,13 +450,33 @@ elif menu == "일회용품 ZERO 챌린지":
                 'date': datetime.now().strftime("%Y-%m-%d")
             })
         
+        # 탄소감축량 계산을 위한 변수들
+        A_single = 0.15  # 일회용품 1개당 탄소배출량 (kg CO₂eq)
+        A_multi = 0.02  # 다회용품 1개당 탄소배출량 (kg CO₂eq)
+        N = single_use_reduction  # 절약된 일회용품 수
+        
+        # 순환이용률 계산을 위한 변수들
+        R = personal_cups + tumblers  # 재사용 용기 수
+        C = lunchboxes  # 순환용기 수 (도시락)
+        W = np.random.randint(50, 100)  # 폐기물 수 (샘플)
+        
         st.session_state.zero_challenge_data = {
             "participants": total_participants,
             "personal_cups": personal_cups,
             "tumblers": tumblers,
             "lunchboxes": lunchboxes,
             "single_use_reduction": single_use_reduction,
-            "daily_registrations": sample_registrations
+            "daily_registrations": sample_registrations,
+            # 탄소감축량 관련
+            "A_single": A_single,
+            "A_multi": A_multi,
+            "N": N,
+            "carbon_reduction": (A_single - A_multi) * N,
+            # 순환이용률 관련
+            "R": R,
+            "C": C,
+            "W": W,
+            "circular_rate": ((R + C) / (W + C)) * 100
         }
 
     st.markdown("---")
@@ -429,6 +530,11 @@ elif menu == "일회용품 ZERO 챌린지":
             st.session_state.zero_challenge_data['personal_cups'] += 1
             st.session_state.zero_challenge_data['participants'] += 1
             st.session_state.zero_challenge_data['single_use_reduction'] += 1
+            st.session_state.zero_challenge_data['N'] += 1
+            st.session_state.zero_challenge_data['R'] += 1
+            # 지표 재계산
+            st.session_state.zero_challenge_data['carbon_reduction'] = (st.session_state.zero_challenge_data['A_single'] - st.session_state.zero_challenge_data['A_multi']) * st.session_state.zero_challenge_data['N']
+            st.session_state.zero_challenge_data['circular_rate'] = ((st.session_state.zero_challenge_data['R'] + st.session_state.zero_challenge_data['C']) / (st.session_state.zero_challenge_data['W'] + st.session_state.zero_challenge_data['C'])) * 100
             st.session_state.zero_challenge_data['daily_registrations'].append({
                 'type': '개인 컵',
                 'timestamp': datetime.now().strftime("%H:%M"),
@@ -459,6 +565,11 @@ elif menu == "일회용품 ZERO 챌린지":
             st.session_state.zero_challenge_data['tumblers'] += 1
             st.session_state.zero_challenge_data['participants'] += 1
             st.session_state.zero_challenge_data['single_use_reduction'] += 1
+            st.session_state.zero_challenge_data['N'] += 1
+            st.session_state.zero_challenge_data['R'] += 1
+            # 지표 재계산
+            st.session_state.zero_challenge_data['carbon_reduction'] = (st.session_state.zero_challenge_data['A_single'] - st.session_state.zero_challenge_data['A_multi']) * st.session_state.zero_challenge_data['N']
+            st.session_state.zero_challenge_data['circular_rate'] = ((st.session_state.zero_challenge_data['R'] + st.session_state.zero_challenge_data['C']) / (st.session_state.zero_challenge_data['W'] + st.session_state.zero_challenge_data['C'])) * 100
             st.session_state.zero_challenge_data['daily_registrations'].append({
                 'type': '텀블러',
                 'timestamp': datetime.now().strftime("%H:%M"),
@@ -489,6 +600,11 @@ elif menu == "일회용품 ZERO 챌린지":
             st.session_state.zero_challenge_data['lunchboxes'] += 1
             st.session_state.zero_challenge_data['participants'] += 1
             st.session_state.zero_challenge_data['single_use_reduction'] += 2  # 도시락은 용기 2개 절약
+            st.session_state.zero_challenge_data['N'] += 2
+            st.session_state.zero_challenge_data['C'] += 1
+            # 지표 재계산
+            st.session_state.zero_challenge_data['carbon_reduction'] = (st.session_state.zero_challenge_data['A_single'] - st.session_state.zero_challenge_data['A_multi']) * st.session_state.zero_challenge_data['N']
+            st.session_state.zero_challenge_data['circular_rate'] = ((st.session_state.zero_challenge_data['R'] + st.session_state.zero_challenge_data['C']) / (st.session_state.zero_challenge_data['W'] + st.session_state.zero_challenge_data['C'])) * 100
             st.session_state.zero_challenge_data['daily_registrations'].append({
                 'type': '도시락',
                 'timestamp': datetime.now().strftime("%H:%M"),
@@ -502,7 +618,7 @@ elif menu == "일회용품 ZERO 챌린지":
     # 실시간 통계
     st.subheader("📊 실시간 통계")
     
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3, col4, col5, col6 = st.columns(6)
     
     with col1:
         st.metric(
@@ -527,9 +643,23 @@ elif menu == "일회용품 ZERO 챌린지":
     
     with col4:
         st.metric(
-            label="탄소 절약",
-            value=f"{st.session_state.zero_challenge_data['single_use_reduction'] * 0.05:.2f}kg",
-            delta="CO2"
+            label="탄소감축량",
+            value=f"{st.session_state.zero_challenge_data['carbon_reduction']:.2f}kg",
+            delta="CO₂eq"
+        )
+    
+    with col5:
+        st.metric(
+            label="순환이용률",
+            value=f"{st.session_state.zero_challenge_data['circular_rate']:.1f}%",
+            delta="환경효과"
+        )
+    
+    with col6:
+        st.metric(
+            label="재사용 용기",
+            value=f"{st.session_state.zero_challenge_data['R']}개",
+            delta="R+C"
         )
 
     st.markdown("---")
@@ -552,6 +682,86 @@ elif menu == "일회용품 ZERO 챌린지":
     )
     fig_usage.update_layout(height=400)
     st.plotly_chart(fig_usage, use_container_width=True)
+
+    st.markdown("---")
+
+    # 지표 산식 설명
+    st.subheader("📊 지표 산식 설명")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.info("""
+        **🌱 탄소감축량 계산 공식**
+        
+        ```
+        탄소감축량 = (A_single − A_multi) × N
+        ```
+        
+        **📋 변수 설명**
+        - **A_single**: 일회용품 1개당 탄소배출량 (0.15kg CO₂eq)
+        - **A_multi**: 다회용품 1개당 탄소배출량 (0.02kg CO₂eq)
+        - **N**: 절약된 일회용품 수 (개)
+        
+        **🎯 계산 예시**
+        - 절약된 일회용품: 100개
+        - 탄소감축량: (0.15 - 0.02) × 100 = 13.0kg CO₂eq
+        """)
+    
+    with col2:
+        st.success("""
+        **♻️ 순환이용률 계산 공식**
+        
+        ```
+        순환이용률 = (R + C) / (W + C) × 100
+        ```
+        
+        **📋 변수 설명**
+        - **R**: 재사용 용기 수 (개인 컵 + 텀블러)
+        - **C**: 순환용기 수 (도시락)
+        - **W**: 폐기물 수 (일회용품)
+        
+        **🎯 계산 예시**
+        - 재사용 용기: 80개, 순환용기: 20개, 폐기물: 50개
+        - 순환이용률: (80 + 20) / (50 + 20) × 100 = 142.9%
+        """)
+    
+    # 실시간 계산 예시
+    st.markdown("---")
+    st.subheader("🧮 실시간 계산 예시")
+    
+    current_data = st.session_state.zero_challenge_data
+    carbon_example = (current_data['A_single'] - current_data['A_multi']) * current_data['N']
+    circular_example = ((current_data['R'] + current_data['C']) / (current_data['W'] + current_data['C'])) * 100
+    
+    st.markdown(f"""
+    <div style="
+        border: 2px solid #28a745;
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        background-color: #d4edda;
+        margin-bottom: 10px;
+    ">
+        <h3 style="margin: 0; color: #155724;">📈 현재 상황</h3>
+        <div style="display: flex; justify-content: space-around; margin: 20px 0;">
+            <div>
+                <p style="margin: 5px 0; font-size: 16px; color: #155724;">
+                    <strong>탄소감축량:</strong><br>
+                    ({current_data['A_single']} - {current_data['A_multi']}) × {current_data['N']}<br>
+                    = <strong>{carbon_example:.2f}kg CO₂eq</strong>
+                </p>
+            </div>
+            <div>
+                <p style="margin: 5px 0; font-size: 16px; color: #155724;">
+                    <strong>순환이용률:</strong><br>
+                    ({current_data['R']} + {current_data['C']}) / ({current_data['W']} + {current_data['C']}) × 100<br>
+                    = <strong>{circular_example:.1f}%</strong>
+                </p>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
     st.markdown("---")
 
@@ -622,13 +832,33 @@ elif menu == "일회용품 ZERO 챌린지":
                     'date': datetime.now().strftime("%Y-%m-%d")
                 })
             
+            # 탄소감축량 계산을 위한 변수들
+            A_single = 0.15  # 일회용품 1개당 탄소배출량 (kg CO₂eq)
+            A_multi = 0.02  # 다회용품 1개당 탄소배출량 (kg CO₂eq)
+            N = single_use_reduction  # 절약된 일회용품 수
+            
+            # 순환이용률 계산을 위한 변수들
+            R = personal_cups + tumblers  # 재사용 용기 수
+            C = lunchboxes  # 순환용기 수 (도시락)
+            W = np.random.randint(50, 100)  # 폐기물 수 (샘플)
+            
             st.session_state.zero_challenge_data = {
                 "participants": total_participants,
                 "personal_cups": personal_cups,
                 "tumblers": tumblers,
                 "lunchboxes": lunchboxes,
                 "single_use_reduction": single_use_reduction,
-                "daily_registrations": sample_registrations
+                "daily_registrations": sample_registrations,
+                # 탄소감축량 관련
+                "A_single": A_single,
+                "A_multi": A_multi,
+                "N": N,
+                "carbon_reduction": (A_single - A_multi) * N,
+                # 순환이용률 관련
+                "R": R,
+                "C": C,
+                "W": W,
+                "circular_rate": ((R + C) / (W + C)) * 100
             }
             st.success("샘플 데이터로 초기화되었습니다!")
             st.rerun()
@@ -2587,6 +2817,2473 @@ elif menu == "사무실 미니 플리마켓":
     with col3:
         if st.button("📋 플리마켓 리포트", width='stretch'):
             st.info("플리마켓 리포트를 생성했습니다!")
+
+# 디지털 다이어트 캠페인 페이지
+elif menu == "디지털 다이어트 캠페인":
+    st.title("💻 디지털 다이어트 캠페인")
+    st.write("이메일, 불필요한 파일·첨부 삭제로 서버 전력 감축을 유도하여 디지털 환경을 개선합니다.")
+    
+    # 디지털 다이어트 캠페인 정보
+    digital_diet_info = {
+        "name": "디지털 다이어트 캠페인",
+        "description": "이메일, 불필요한 파일·첨부 삭제로 서버 전력 감축 유도",
+        "schedule": "월간 정리, 분기별 대청소",
+        "goal": "사내 서버 저장용량 절감률, 발신 이메일 감소율 향상"
+    }
+    
+    # 세션 상태 초기화 (샘플 데이터 포함)
+    if 'digital_diet_data' not in st.session_state:
+        # 부서별 디지털 다이어트 데이터
+        departments = {
+            "솔루션사업부": {
+                "name": "솔루션사업부",
+                "icon": "💻",
+                "color": "#007bff",
+                "storage_saved": 0,
+                "emails_reduced": 0,
+                "files_deleted": 0,
+                "power_saved": 0
+            },
+            "클라우드사업부": {
+                "name": "클라우드사업부",
+                "icon": "☁️",
+                "color": "#28a745",
+                "storage_saved": 0,
+                "emails_reduced": 0,
+                "files_deleted": 0,
+                "power_saved": 0
+            },
+            "전마실": {
+                "name": "전마실",
+                "icon": "🏢",
+                "color": "#ffc107",
+                "storage_saved": 0,
+                "emails_reduced": 0,
+                "files_deleted": 0,
+                "power_saved": 0
+            },
+            "물류사업": {
+                "name": "물류사업",
+                "icon": "🚛",
+                "color": "#20c997",
+                "storage_saved": 0,
+                "emails_reduced": 0,
+                "files_deleted": 0,
+                "power_saved": 0
+            },
+            "경영지원": {
+                "name": "경영지원",
+                "icon": "📊",
+                "color": "#6f42c1",
+                "storage_saved": 0,
+                "emails_reduced": 0,
+                "files_deleted": 0,
+                "power_saved": 0
+            },
+            "개발센터": {
+                "name": "개발센터",
+                "icon": "🔧",
+                "color": "#fd7e14",
+                "storage_saved": 0,
+                "emails_reduced": 0,
+                "files_deleted": 0,
+                "power_saved": 0
+            }
+        }
+        
+        # 샘플 데이터 생성
+        sample_departments = {
+            "솔루션사업부": {
+                "name": "솔루션사업부",
+                "icon": "💻",
+                "color": "#007bff",
+                "storage_saved": np.random.randint(15, 25),
+                "emails_reduced": np.random.randint(20, 35),
+                "files_deleted": np.random.randint(500, 800),
+                "power_saved": np.random.randint(8, 15)
+            },
+            "클라우드사업부": {
+                "name": "클라우드사업부",
+                "icon": "☁️",
+                "color": "#28a745",
+                "storage_saved": np.random.randint(12, 20),
+                "emails_reduced": np.random.randint(15, 25),
+                "files_deleted": np.random.randint(300, 500),
+                "power_saved": np.random.randint(6, 12)
+            },
+            "전마실": {
+                "name": "전마실",
+                "icon": "🏢",
+                "color": "#ffc107",
+                "storage_saved": np.random.randint(10, 18),
+                "emails_reduced": np.random.randint(18, 30),
+                "files_deleted": np.random.randint(400, 600),
+                "power_saved": np.random.randint(5, 10)
+            },
+            "물류사업": {
+                "name": "물류사업",
+                "icon": "🚛",
+                "color": "#20c997",
+                "storage_saved": np.random.randint(18, 28),
+                "emails_reduced": np.random.randint(25, 40),
+                "files_deleted": np.random.randint(600, 900),
+                "power_saved": np.random.randint(10, 18)
+            },
+            "경영지원": {
+                "name": "경영지원",
+                "icon": "📊",
+                "color": "#6f42c1",
+                "storage_saved": np.random.randint(20, 30),
+                "emails_reduced": np.random.randint(30, 45),
+                "files_deleted": np.random.randint(700, 1000),
+                "power_saved": np.random.randint(12, 20)
+            },
+            "개발센터": {
+                "name": "개발센터",
+                "icon": "🔧",
+                "color": "#fd7e14",
+                "storage_saved": np.random.randint(22, 32),
+                "emails_reduced": np.random.randint(35, 50),
+                "files_deleted": np.random.randint(800, 1200),
+                "power_saved": np.random.randint(15, 25)
+            }
+        }
+        
+        # 전체 통계 계산
+        total_storage_saved = sum(dept['storage_saved'] for dept in sample_departments.values())
+        total_emails_reduced = sum(dept['emails_reduced'] for dept in sample_departments.values())
+        total_files_deleted = sum(dept['files_deleted'] for dept in sample_departments.values())
+        total_power_saved = sum(dept['power_saved'] for dept in sample_departments.values())
+        avg_storage_saved = round(total_storage_saved / len(sample_departments), 1)
+        avg_emails_reduced = round(total_emails_reduced / len(sample_departments), 1)
+        
+        st.session_state.digital_diet_data = {
+            "departments": sample_departments,
+            "total_storage_saved": total_storage_saved,
+            "total_emails_reduced": total_emails_reduced,
+            "total_files_deleted": total_files_deleted,
+            "total_power_saved": total_power_saved,
+            "avg_storage_saved": avg_storage_saved,
+            "avg_emails_reduced": avg_emails_reduced,
+            "participation_rate": np.random.randint(80, 95)
+        }
+    
+    st.markdown("---")
+    
+    # 디지털 다이어트 캠페인 정보 카드
+    st.subheader("📋 디지털 다이어트 캠페인 정보")
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.info(f"""
+        **📅 일정**: {digital_diet_info['schedule']}
+        
+        **🎯 목표**: {digital_diet_info['goal']}
+        
+        **📝 설명**: {digital_diet_info['description']}
+        """)
+    
+    with col2:
+        st.success(f"""
+        **💾 저장공간**: 서버 용량 절약으로 비용 절감
+        
+        **⚡ 전력절약**: 서버 부하 감소로 전력 절약
+        
+        **🌱 환경효과**: 디지털 탄소 발자국 감소
+        """)
+    
+    st.markdown("---")
+    
+    # 전체 통계
+    st.subheader("📊 전체 통계")
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.metric(
+            label="총 저장용량 절감",
+            value=f"{st.session_state.digital_diet_data['total_storage_saved']}GB",
+            delta=f"+{np.random.randint(3, 8)}GB"
+        )
+    
+    with col2:
+        st.metric(
+            label="총 이메일 감소",
+            value=f"{st.session_state.digital_diet_data['total_emails_reduced']}%",
+            delta=f"+{np.random.randint(5, 12)}%"
+        )
+    
+    with col3:
+        st.metric(
+            label="총 파일 삭제",
+            value=f"{st.session_state.digital_diet_data['total_files_deleted']}개",
+            delta=f"+{np.random.randint(50, 150)}개"
+        )
+    
+    with col4:
+        st.metric(
+            label="총 전력 절약",
+            value=f"{st.session_state.digital_diet_data['total_power_saved']}%",
+            delta=f"+{np.random.randint(2, 6)}%"
+        )
+    
+    st.markdown("---")
+    
+    # 부서별 디지털 다이어트 현황
+    st.subheader("💻 부서별 디지털 다이어트 현황")
+    
+    # 부서별 카드 레이아웃 (2열)
+    dept_names = list(st.session_state.digital_diet_data['departments'].keys())
+    
+    for i in range(0, len(dept_names), 2):
+        cols = st.columns(2)
+        for j in range(2):
+            if i + j < len(dept_names):
+                dept_key = dept_names[i + j]
+                dept_info = st.session_state.digital_diet_data['departments'][dept_key]
+                
+                with cols[j]:
+                    st.markdown(f"""
+                    <div style="
+                        border: 2px solid {dept_info['color']};
+                        border-radius: 10px;
+                        padding: 20px;
+                        text-align: center;
+                        background-color: #f8f9fa;
+                        margin-bottom: 10px;
+                    ">
+                        <h3 style="margin: 0; color: {dept_info['color']};">{dept_info['icon']}</h3>
+                        <h4 style="margin: 10px 0; color: #333;">{dept_info['name']}</h4>
+                        <p style="margin: 5px 0; font-size: 14px; font-weight: bold; color: {dept_info['color']};">
+                            저장용량절감: {dept_info['storage_saved']}GB
+                        </p>
+                        <p style="margin: 5px 0; font-size: 12px; color: #007bff;">
+                            이메일감소: {dept_info['emails_reduced']}%
+                        </p>
+                        <p style="margin: 5px 0; font-size: 12px; color: #28a745;">
+                            파일삭제: {dept_info['files_deleted']}개
+                        </p>
+                        <p style="margin: 5px 0; font-size: 12px; color: #6c757d;">
+                            전력절약: {dept_info['power_saved']}%
+                        </p>
+                    </div>
+                    """, unsafe_allow_html=True)
+    
+    st.markdown("---")
+    
+    # 부서별 저장용량 절감률 차트
+    st.subheader("💾 부서별 저장용량 절감률")
+    
+    dept_names = list(st.session_state.digital_diet_data['departments'].keys())
+    storage_savings = [dept['storage_saved'] for dept in st.session_state.digital_diet_data['departments'].values()]
+    colors = [dept['color'] for dept in st.session_state.digital_diet_data['departments'].values()]
+    
+    fig_storage = px.bar(
+        x=dept_names,
+        y=storage_savings,
+        title='부서별 저장용량 절감률',
+        labels={'x': '부서', 'y': '저장용량 절감 (GB)'},
+        color=dept_names,
+        color_discrete_sequence=colors
+    )
+    fig_storage.update_layout(
+        xaxis_title="부서",
+        yaxis_title="저장용량 절감 (GB)"
+    )
+    st.plotly_chart(fig_storage, use_container_width=True)
+    
+    st.markdown("---")
+    
+    # 부서별 이메일 감소율과 파일 삭제 수
+    st.subheader("📧 부서별 이메일 감소율과 파일 삭제 수")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        emails_reduced = [dept['emails_reduced'] for dept in st.session_state.digital_diet_data['departments'].values()]
+        
+        fig_emails = px.bar(
+            x=dept_names,
+            y=emails_reduced,
+            title='부서별 이메일 감소율',
+            labels={'x': '부서', 'y': '이메일 감소율 (%)'},
+            color=dept_names,
+            color_discrete_sequence=colors
+        )
+        fig_emails.update_layout(xaxis_title="부서", yaxis_title="이메일 감소율 (%)")
+        st.plotly_chart(fig_emails, use_container_width=True)
+    
+    with col2:
+        files_deleted = [dept['files_deleted'] for dept in st.session_state.digital_diet_data['departments'].values()]
+        
+        fig_files = px.bar(
+            x=dept_names,
+            y=files_deleted,
+            title='부서별 파일 삭제 수',
+            labels={'x': '부서', 'y': '파일 삭제 수'},
+            color=dept_names,
+            color_discrete_sequence=colors
+        )
+        fig_files.update_layout(xaxis_title="부서", yaxis_title="파일 삭제 수")
+        st.plotly_chart(fig_files, use_container_width=True)
+    
+    st.markdown("---")
+    
+    # 디지털 다이어트 가이드
+    st.subheader("📋 디지털 다이어트 가이드")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.info("""
+        **📧 이메일 정리**
+        - 불필요한 이메일 삭제
+        - 첨부파일 정리
+        - 스팸 메일 차단
+        - 자동 정리 규칙 설정
+        
+        **💾 파일 정리**
+        - 중복 파일 삭제
+        - 임시 파일 정리
+        - 오래된 파일 아카이브
+        - 클라우드 저장소 정리
+        """)
+    
+    with col2:
+        st.success("""
+        **🗂️ 폴더 정리**
+        - 체계적인 폴더 구조
+        - 불필요한 폴더 삭제
+        - 파일명 규칙화
+        - 정기적인 백업
+        
+        **⚡ 시스템 최적화**
+        - 불필요한 프로그램 제거
+        - 시작 프로그램 정리
+        - 디스크 정리 실행
+        - 시스템 업데이트
+        """)
+    
+    st.markdown("---")
+    
+    # 디지털 다이어트 참여 등록
+    st.subheader("📝 디지털 다이어트 참여 등록")
+    
+    with st.form("digital_diet_registration"):
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            participant_name = st.text_input("참여자명", placeholder="예: 홍길동")
+            department = st.selectbox("소속 부서", ["솔루션사업부", "클라우드사업부", "전마실", "물류사업", "경영지원", "개발센터"])
+            storage_cleaned = st.number_input("정리한 저장용량 (GB)", min_value=0, max_value=100, value=5)
+        
+        with col2:
+            emails_deleted = st.number_input("삭제한 이메일 수", min_value=0, max_value=1000, value=50)
+            files_deleted = st.number_input("삭제한 파일 수", min_value=0, max_value=500, value=20)
+            cleanup_date = st.date_input("정리 날짜", value=datetime.now().date())
+        
+        cleanup_description = st.text_area("정리 내용", placeholder="어떤 파일들을 정리했는지 구체적으로 작성해주세요.", height=100)
+        
+        submitted = st.form_submit_button("디지털 다이어트 등록")
+        if submitted:
+            if participant_name and cleanup_description:
+                # 전력 절약 계산 (저장용량 1GB당 0.5%, 이메일 10개당 0.1%, 파일 10개당 0.1%)
+                power_saved = round((storage_cleaned * 0.5) + (emails_deleted * 0.01) + (files_deleted * 0.01), 1)
+                
+                st.success(f"{participant_name}님의 디지털 다이어트가 성공적으로 등록되었습니다! 💻")
+                st.info(f"저장용량: {storage_cleaned}GB, 이메일: {emails_deleted}개, 파일: {files_deleted}개, 전력절약: {power_saved}%")
+            else:
+                st.error("모든 필수 항목을 입력해주세요!")
+    
+    st.markdown("---")
+    
+    # 환경 효과
+    st.subheader("🌱 환경 효과")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    total_storage = st.session_state.digital_diet_data['total_storage_saved']
+    total_emails = st.session_state.digital_diet_data['total_emails_reduced']
+    total_files = st.session_state.digital_diet_data['total_files_deleted']
+    
+    with col1:
+        st.metric(
+            label="CO2 절약",
+            value=f"{total_storage * 0.3:.1f}kg",
+            delta="월간 절약"
+        )
+    
+    with col2:
+        st.metric(
+            label="전력 절약",
+            value=f"{total_storage * 0.5:.1f}kWh",
+            delta="월간 절약"
+        )
+    
+    with col3:
+        st.metric(
+            label="서버 효율성",
+            value=f"{np.random.randint(85, 95)}%",
+            delta="월간 효율성"
+        )
+    
+    st.markdown("---")
+    
+    # 데이터 관리
+    st.subheader("🔄 데이터 관리")
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        if st.button("📊 데이터 초기화", width='stretch'):
+            # 새로운 샘플 데이터 생성
+            sample_departments = {
+                "솔루션사업부": {
+                    "name": "솔루션사업부",
+                    "icon": "💻",
+                    "color": "#007bff",
+                    "storage_saved": np.random.randint(15, 25),
+                    "emails_reduced": np.random.randint(20, 35),
+                    "files_deleted": np.random.randint(500, 800),
+                    "power_saved": np.random.randint(8, 15)
+                },
+                "클라우드사업부": {
+                    "name": "클라우드사업부",
+                    "icon": "☁️",
+                    "color": "#28a745",
+                    "storage_saved": np.random.randint(12, 20),
+                    "emails_reduced": np.random.randint(15, 25),
+                    "files_deleted": np.random.randint(300, 500),
+                    "power_saved": np.random.randint(6, 12)
+                },
+                "전마실": {
+                    "name": "전마실",
+                    "icon": "🏢",
+                    "color": "#ffc107",
+                    "storage_saved": np.random.randint(10, 18),
+                    "emails_reduced": np.random.randint(18, 30),
+                    "files_deleted": np.random.randint(400, 600),
+                    "power_saved": np.random.randint(5, 10)
+                },
+                "물류사업": {
+                    "name": "물류사업",
+                    "icon": "🚛",
+                    "color": "#20c997",
+                    "storage_saved": np.random.randint(18, 28),
+                    "emails_reduced": np.random.randint(25, 40),
+                    "files_deleted": np.random.randint(600, 900),
+                    "power_saved": np.random.randint(10, 18)
+                },
+                "경영지원": {
+                    "name": "경영지원",
+                    "icon": "📊",
+                    "color": "#6f42c1",
+                    "storage_saved": np.random.randint(20, 30),
+                    "emails_reduced": np.random.randint(30, 45),
+                    "files_deleted": np.random.randint(700, 1000),
+                    "power_saved": np.random.randint(12, 20)
+                },
+                "개발센터": {
+                    "name": "개발센터",
+                    "icon": "🔧",
+                    "color": "#fd7e14",
+                    "storage_saved": np.random.randint(22, 32),
+                    "emails_reduced": np.random.randint(35, 50),
+                    "files_deleted": np.random.randint(800, 1200),
+                    "power_saved": np.random.randint(15, 25)
+                }
+            }
+            
+            # 전체 통계 재계산
+            total_storage_saved = sum(dept['storage_saved'] for dept in sample_departments.values())
+            total_emails_reduced = sum(dept['emails_reduced'] for dept in sample_departments.values())
+            total_files_deleted = sum(dept['files_deleted'] for dept in sample_departments.values())
+            total_power_saved = sum(dept['power_saved'] for dept in sample_departments.values())
+            avg_storage_saved = round(total_storage_saved / len(sample_departments), 1)
+            avg_emails_reduced = round(total_emails_reduced / len(sample_departments), 1)
+            
+            st.session_state.digital_diet_data = {
+                "departments": sample_departments,
+                "total_storage_saved": total_storage_saved,
+                "total_emails_reduced": total_emails_reduced,
+                "total_files_deleted": total_files_deleted,
+                "total_power_saved": total_power_saved,
+                "avg_storage_saved": avg_storage_saved,
+                "avg_emails_reduced": avg_emails_reduced,
+                "participation_rate": np.random.randint(80, 95)
+            }
+            st.success("샘플 데이터로 초기화되었습니다!")
+            st.rerun()
+    
+    with col2:
+        if st.button("📈 통계 새로고침", width='stretch'):
+            st.info("통계 데이터를 새로고침했습니다!")
+    
+    with col3:
+        if st.button("📋 다이어트 리포트", width='stretch'):
+            st.info("디지털 다이어트 리포트를 생성했습니다!")
+
+# ESG 교육 및 퀴즈데이 페이지
+elif menu == "ESG 교육 및 퀴즈데이":
+    st.title("🎓 ESG 교육 및 퀴즈데이")
+    st.write("직원대상 ESG 온라인 교육·퀴즈를 진행하고, 점수에 따라 리워드를 제공하여 ESG 인식도를 향상시킵니다.")
+    
+    # ESG 교육 및 퀴즈데이 정보
+    esg_education_info = {
+        "name": "ESG 교육 및 퀴즈데이",
+        "description": "직원대상 ESG 온라인 교육·퀴즈 진행, 점수에 따라 리워드 제공",
+        "schedule": "월 2회 교육, 분기별 퀴즈 대회",
+        "goal": "참여율, ESG 인식도 조사 점수 변화 향상"
+    }
+    
+    # 세션 상태 초기화 (샘플 데이터 포함)
+    if 'esg_education_data' not in st.session_state:
+        # 교육 과정별 데이터
+        education_courses = {
+            "ESG기초": {
+                "name": "ESG 기초 교육",
+                "icon": "📚",
+                "color": "#007bff",
+                "participants": 0,
+                "completion_rate": 0,
+                "avg_score": 0,
+                "duration": "2시간",
+                "difficulty": "초급"
+            },
+            "환경경영": {
+                "name": "환경 경영 교육",
+                "icon": "🌱",
+                "color": "#28a745",
+                "participants": 0,
+                "completion_rate": 0,
+                "avg_score": 0,
+                "duration": "3시간",
+                "difficulty": "중급"
+            },
+            "사회책임": {
+                "name": "사회적 책임 교육",
+                "icon": "🤝",
+                "color": "#ffc107",
+                "participants": 0,
+                "completion_rate": 0,
+                "avg_score": 0,
+                "duration": "2.5시간",
+                "difficulty": "중급"
+            },
+            "지배구조": {
+                "name": "지배구조 교육",
+                "icon": "⚖️",
+                "color": "#6f42c1",
+                "participants": 0,
+                "completion_rate": 0,
+                "avg_score": 0,
+                "duration": "2시간",
+                "difficulty": "고급"
+            },
+            "지속가능성": {
+                "name": "지속가능성 교육",
+                "icon": "♻️",
+                "color": "#20c997",
+                "participants": 0,
+                "completion_rate": 0,
+                "avg_score": 0,
+                "duration": "3.5시간",
+                "difficulty": "고급"
+            }
+        }
+        
+        # 샘플 데이터 생성
+        sample_courses = {
+            "ESG기초": {
+                "name": "ESG 기초 교육",
+                "icon": "📚",
+                "color": "#007bff",
+                "participants": np.random.randint(80, 120),
+                "completion_rate": np.random.randint(85, 95),
+                "avg_score": np.random.randint(75, 85),
+                "duration": "2시간",
+                "difficulty": "초급"
+            },
+            "환경경영": {
+                "name": "환경 경영 교육",
+                "icon": "🌱",
+                "color": "#28a745",
+                "participants": np.random.randint(60, 90),
+                "completion_rate": np.random.randint(80, 90),
+                "avg_score": np.random.randint(70, 80),
+                "duration": "3시간",
+                "difficulty": "중급"
+            },
+            "사회책임": {
+                "name": "사회적 책임 교육",
+                "icon": "🤝",
+                "color": "#ffc107",
+                "participants": np.random.randint(70, 100),
+                "completion_rate": np.random.randint(82, 92),
+                "avg_score": np.random.randint(72, 82),
+                "duration": "2.5시간",
+                "difficulty": "중급"
+            },
+            "지배구조": {
+                "name": "지배구조 교육",
+                "icon": "⚖️",
+                "color": "#6f42c1",
+                "participants": np.random.randint(50, 80),
+                "completion_rate": np.random.randint(75, 85),
+                "avg_score": np.random.randint(65, 75),
+                "duration": "2시간",
+                "difficulty": "고급"
+            },
+            "지속가능성": {
+                "name": "지속가능성 교육",
+                "icon": "♻️",
+                "color": "#20c997",
+                "participants": np.random.randint(45, 75),
+                "completion_rate": np.random.randint(70, 80),
+                "avg_score": np.random.randint(60, 70),
+                "duration": "3.5시간",
+                "difficulty": "고급"
+            }
+        }
+        
+        # 전체 통계 계산
+        total_participants = sum(course['participants'] for course in sample_courses.values())
+        avg_completion_rate = round(sum(course['completion_rate'] for course in sample_courses.values()) / len(sample_courses), 1)
+        avg_score = round(sum(course['avg_score'] for course in sample_courses.values()) / len(sample_courses), 1)
+        total_completed = sum(int(course['participants'] * course['completion_rate'] / 100) for course in sample_courses.values())
+        
+        st.session_state.esg_education_data = {
+            "courses": sample_courses,
+            "total_participants": total_participants,
+            "avg_completion_rate": avg_completion_rate,
+            "avg_score": avg_score,
+            "total_completed": total_completed,
+            "participation_rate": np.random.randint(75, 90),
+            "awareness_score": np.random.randint(70, 85)
+        }
+    
+    st.markdown("---")
+    
+    # ESG 교육 및 퀴즈데이 정보 카드
+    st.subheader("📋 ESG 교육 및 퀴즈데이 정보")
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.info(f"""
+        **📅 일정**: {esg_education_info['schedule']}
+        
+        **🎯 목표**: {esg_education_info['goal']}
+        
+        **📝 설명**: {esg_education_info['description']}
+        """)
+    
+    with col2:
+        st.success(f"""
+        **🎓 교육효과**: ESG 전문 지식 습득
+        
+        **🏆 경쟁효과**: 퀴즈 대회를 통한 학습 동기 부여
+        
+        **🎁 리워드효과**: 점수에 따른 인센티브 제공
+        """)
+    
+    st.markdown("---")
+    
+    # 전체 통계
+    st.subheader("📊 전체 통계")
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.metric(
+            label="총 참여자",
+            value=f"{st.session_state.esg_education_data['total_participants']}명",
+            delta=f"+{np.random.randint(5, 15)}명"
+        )
+    
+    with col2:
+        st.metric(
+            label="평균 완주율",
+            value=f"{st.session_state.esg_education_data['avg_completion_rate']}%",
+            delta=f"+{np.random.randint(2, 5)}%"
+        )
+    
+    with col3:
+        st.metric(
+            label="평균 점수",
+            value=f"{st.session_state.esg_education_data['avg_score']}점",
+            delta=f"+{np.random.randint(3, 8)}점"
+        )
+    
+    with col4:
+        st.metric(
+            label="ESG 인식도",
+            value=f"{st.session_state.esg_education_data['awareness_score']}점",
+            delta=f"+{np.random.randint(5, 10)}점"
+        )
+    
+    st.markdown("---")
+    
+    # 교육 과정별 현황
+    st.subheader("🎓 교육 과정별 현황")
+    
+    # 교육 과정별 카드 레이아웃 (2열)
+    course_names = list(st.session_state.esg_education_data['courses'].keys())
+    
+    for i in range(0, len(course_names), 2):
+        cols = st.columns(2)
+        for j in range(2):
+            if i + j < len(course_names):
+                course_key = course_names[i + j]
+                course_info = st.session_state.esg_education_data['courses'][course_key]
+                
+                with cols[j]:
+                    st.markdown(f"""
+                    <div style="
+                        border: 2px solid {course_info['color']};
+                        border-radius: 10px;
+                        padding: 20px;
+                        text-align: center;
+                        background-color: #f8f9fa;
+                        margin-bottom: 10px;
+                    ">
+                        <h3 style="margin: 0; color: {course_info['color']};">{course_info['icon']}</h3>
+                        <h4 style="margin: 10px 0; color: #333;">{course_info['name']}</h4>
+                        <p style="margin: 5px 0; font-size: 14px; font-weight: bold; color: {course_info['color']};">
+                            참여자: {course_info['participants']}명
+                        </p>
+                        <p style="margin: 5px 0; font-size: 12px; color: #007bff;">
+                            완주율: {course_info['completion_rate']}%
+                        </p>
+                        <p style="margin: 5px 0; font-size: 12px; color: #28a745;">
+                            평균점수: {course_info['avg_score']}점
+                        </p>
+                        <p style="margin: 5px 0; font-size: 12px; color: #6c757d;">
+                            소요시간: {course_info['duration']}
+                        </p>
+                        <p style="margin: 5px 0; font-size: 12px; color: #6c757d;">
+                            난이도: {course_info['difficulty']}
+                        </p>
+                    </div>
+                    """, unsafe_allow_html=True)
+    
+    st.markdown("---")
+    
+    # 교육 과정별 참여자 수 차트
+    st.subheader("👥 교육 과정별 참여자 수")
+    
+    course_names = list(st.session_state.esg_education_data['courses'].keys())
+    participants_counts = [course['participants'] for course in st.session_state.esg_education_data['courses'].values()]
+    colors = [course['color'] for course in st.session_state.esg_education_data['courses'].values()]
+    
+    fig_participants = px.bar(
+        x=course_names,
+        y=participants_counts,
+        title='교육 과정별 참여자 수',
+        labels={'x': '교육 과정', 'y': '참여자 수'},
+        color=course_names,
+        color_discrete_sequence=colors
+    )
+    fig_participants.update_layout(
+        xaxis_title="교육 과정",
+        yaxis_title="참여자 수"
+    )
+    st.plotly_chart(fig_participants, use_container_width=True)
+    
+    st.markdown("---")
+    
+    # 교육 과정별 완주율과 평균 점수
+    st.subheader("📈 교육 과정별 완주율과 평균 점수")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        completion_rates = [course['completion_rate'] for course in st.session_state.esg_education_data['courses'].values()]
+        
+        fig_completion = px.bar(
+            x=course_names,
+            y=completion_rates,
+            title='교육 과정별 완주율',
+            labels={'x': '교육 과정', 'y': '완주율 (%)'},
+            color=course_names,
+            color_discrete_sequence=colors
+        )
+        fig_completion.update_layout(xaxis_title="교육 과정", yaxis_title="완주율 (%)")
+        st.plotly_chart(fig_completion, use_container_width=True)
+    
+    with col2:
+        avg_scores = [course['avg_score'] for course in st.session_state.esg_education_data['courses'].values()]
+        
+        fig_scores = px.bar(
+            x=course_names,
+            y=avg_scores,
+            title='교육 과정별 평균 점수',
+            labels={'x': '교육 과정', 'y': '평균 점수'},
+            color=course_names,
+            color_discrete_sequence=colors
+        )
+        fig_scores.update_layout(xaxis_title="교육 과정", yaxis_title="평균 점수")
+        st.plotly_chart(fig_scores, use_container_width=True)
+    
+    st.markdown("---")
+    
+    # ESG 퀴즈 대회
+    st.subheader("🏆 ESG 퀴즈 대회")
+    
+    # 간단한 퀴즈 인터페이스
+    st.write("**ESG 기초 퀴즈 (5문제)**")
+    
+    quiz_questions = [
+        {
+            "question": "ESG에서 E는 무엇을 의미하나요?",
+            "options": ["Environment (환경)", "Economy (경제)", "Education (교육)", "Energy (에너지)"],
+            "correct": 0
+        },
+        {
+            "question": "탄소 중립이란 무엇인가요?",
+            "options": ["탄소를 완전히 제거하는 것", "탄소 배출량과 흡수량을 같게 만드는 것", "탄소를 저장하는 것", "탄소를 재활용하는 것"],
+            "correct": 1
+        },
+        {
+            "question": "사회적 책임(S)의 주요 요소는?",
+            "options": ["환경 보호", "지배구조 개선", "인권 보호, 공정한 노동", "기술 혁신"],
+            "correct": 2
+        },
+        {
+            "question": "지속가능한 발전의 핵심은?",
+            "options": ["경제 성장만", "환경 보호만", "경제, 사회, 환경의 균형", "기술 발전만"],
+            "correct": 2
+        },
+        {
+            "question": "Scope 1 배출이란?",
+            "options": ["간접 배출", "직접 배출", "가치사슬 배출", "외부 배출"],
+            "correct": 1
+        }
+    ]
+    
+    # 퀴즈 상태 초기화
+    if 'quiz_state' not in st.session_state:
+        st.session_state.quiz_state = {
+            'current_question': 0,
+            'score': 0,
+            'answers': [],
+            'completed': False
+        }
+    
+    if not st.session_state.quiz_state['completed']:
+        current_q = st.session_state.quiz_state['current_question']
+        question = quiz_questions[current_q]
+        
+        st.write(f"**문제 {current_q + 1}/5:** {question['question']}")
+        
+        selected_option = st.radio("답을 선택하세요:", question['options'], key=f"q{current_q}")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("다음 문제", disabled=current_q >= len(quiz_questions)-1):
+                st.session_state.quiz_state['answers'].append(selected_option)
+                if question['options'].index(selected_option) == question['correct']:
+                    st.session_state.quiz_state['score'] += 1
+                st.session_state.quiz_state['current_question'] += 1
+                st.rerun()
+        
+        with col2:
+            if st.button("퀴즈 완료", disabled=current_q < len(quiz_questions)-1):
+                st.session_state.quiz_state['answers'].append(selected_option)
+                if question['options'].index(selected_option) == question['correct']:
+                    st.session_state.quiz_state['score'] += 1
+                st.session_state.quiz_state['completed'] = True
+                st.rerun()
+    
+    else:
+        score = st.session_state.quiz_state['score']
+        total = len(quiz_questions)
+        percentage = (score / total) * 100
+        
+        st.success(f"🎉 퀴즈 완료! 점수: {score}/{total} ({percentage:.0f}%)")
+        
+        if percentage >= 80:
+            st.balloons()
+            st.info("🏆 우수한 성적입니다! 리워드가 지급됩니다!")
+        elif percentage >= 60:
+            st.info("👍 좋은 성적입니다! 계속 노력하세요!")
+        else:
+            st.warning("📚 더 공부가 필요합니다. 교육 과정을 다시 수강해보세요!")
+        
+        if st.button("퀴즈 다시 시작"):
+            st.session_state.quiz_state = {
+                'current_question': 0,
+                'score': 0,
+                'answers': [],
+                'completed': False
+            }
+            st.rerun()
+    
+    st.markdown("---")
+    
+    # 리워드 시스템
+    st.subheader("🎁 리워드 시스템")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.metric(
+            label="퀴즈 완주",
+            value="기본 리워드",
+            delta="100포인트"
+        )
+    
+    with col2:
+        st.metric(
+            label="80점 이상",
+            value="우수 리워드",
+            delta="200포인트"
+        )
+    
+    with col3:
+        st.metric(
+            label="만점 달성",
+            value="완벽 리워드",
+            delta="500포인트"
+        )
+    
+    st.markdown("---")
+    
+    # 데이터 관리
+    st.subheader("🔄 데이터 관리")
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        if st.button("📊 데이터 초기화", width='stretch'):
+            # 새로운 샘플 데이터 생성
+            sample_courses = {
+                "ESG기초": {
+                    "name": "ESG 기초 교육",
+                    "icon": "📚",
+                    "color": "#007bff",
+                    "participants": np.random.randint(80, 120),
+                    "completion_rate": np.random.randint(85, 95),
+                    "avg_score": np.random.randint(75, 85),
+                    "duration": "2시간",
+                    "difficulty": "초급"
+                },
+                "환경경영": {
+                    "name": "환경 경영 교육",
+                    "icon": "🌱",
+                    "color": "#28a745",
+                    "participants": np.random.randint(60, 90),
+                    "completion_rate": np.random.randint(80, 90),
+                    "avg_score": np.random.randint(70, 80),
+                    "duration": "3시간",
+                    "difficulty": "중급"
+                },
+                "사회책임": {
+                    "name": "사회적 책임 교육",
+                    "icon": "🤝",
+                    "color": "#ffc107",
+                    "participants": np.random.randint(70, 100),
+                    "completion_rate": np.random.randint(82, 92),
+                    "avg_score": np.random.randint(72, 82),
+                    "duration": "2.5시간",
+                    "difficulty": "중급"
+                },
+                "지배구조": {
+                    "name": "지배구조 교육",
+                    "icon": "⚖️",
+                    "color": "#6f42c1",
+                    "participants": np.random.randint(50, 80),
+                    "completion_rate": np.random.randint(75, 85),
+                    "avg_score": np.random.randint(65, 75),
+                    "duration": "2시간",
+                    "difficulty": "고급"
+                },
+                "지속가능성": {
+                    "name": "지속가능성 교육",
+                    "icon": "♻️",
+                    "color": "#20c997",
+                    "participants": np.random.randint(45, 75),
+                    "completion_rate": np.random.randint(70, 80),
+                    "avg_score": np.random.randint(60, 70),
+                    "duration": "3.5시간",
+                    "difficulty": "고급"
+                }
+            }
+            
+            # 전체 통계 재계산
+            total_participants = sum(course['participants'] for course in sample_courses.values())
+            avg_completion_rate = round(sum(course['completion_rate'] for course in sample_courses.values()) / len(sample_courses), 1)
+            avg_score = round(sum(course['avg_score'] for course in sample_courses.values()) / len(sample_courses), 1)
+            total_completed = sum(int(course['participants'] * course['completion_rate'] / 100) for course in sample_courses.values())
+            
+            st.session_state.esg_education_data = {
+                "courses": sample_courses,
+                "total_participants": total_participants,
+                "avg_completion_rate": avg_completion_rate,
+                "avg_score": avg_score,
+                "total_completed": total_completed,
+                "participation_rate": np.random.randint(75, 90),
+                "awareness_score": np.random.randint(70, 85)
+            }
+            st.success("샘플 데이터로 초기화되었습니다!")
+            st.rerun()
+    
+    with col2:
+        if st.button("📈 통계 새로고침", width='stretch'):
+            st.info("통계 데이터를 새로고침했습니다!")
+    
+    with col3:
+        if st.button("📋 교육 리포트", width='stretch'):
+            st.info("ESG 교육 리포트를 생성했습니다!")
+
+# 투명한 ESG 성과 공개 플랫폼 페이지
+elif menu == "ESG 성과 공개 플랫폼":
+    st.title("📊 투명한 ESG 성과 공개 플랫폼")
+    st.write("부서별 ESG 지표(전력 절감, 자원 절약, 봉사 참여 등)를 사내 대시보드로 시각화하여 투명한 성과 공개를 실현합니다.")
+    
+    # ESG 성과 공개 플랫폼 정보
+    esg_platform_info = {
+        "name": "투명한 ESG 성과 공개 플랫폼",
+        "description": "부서별 ESG 지표를 사내 대시보드로 시각화",
+        "schedule": "월간 성과 공개, 분기별 종합 평가",
+        "goal": "목표 달성률, 참여 팀 비율 향상"
+    }
+    
+    # 세션 상태 초기화 (샘플 데이터 포함)
+    if 'esg_platform_data' not in st.session_state:
+        # 부서별 ESG 지표 데이터
+        departments = {
+            "솔루션사업부": {
+                "name": "솔루션사업부",
+                "icon": "💻",
+                "color": "#007bff",
+                "power_saving": 0,
+                "resource_saving": 0,
+                "volunteer_participation": 0,
+                "target_achievement": 0,
+                "participation_rate": 0
+            },
+            "클라우드사업부": {
+                "name": "클라우드사업부",
+                "icon": "☁️",
+                "color": "#28a745",
+                "power_saving": 0,
+                "resource_saving": 0,
+                "volunteer_participation": 0,
+                "target_achievement": 0,
+                "participation_rate": 0
+            },
+            "전마실": {
+                "name": "전마실",
+                "icon": "🏢",
+                "color": "#ffc107",
+                "power_saving": 0,
+                "resource_saving": 0,
+                "volunteer_participation": 0,
+                "target_achievement": 0,
+                "participation_rate": 0
+            },
+            "물류사업": {
+                "name": "물류사업",
+                "icon": "🚛",
+                "color": "#20c997",
+                "power_saving": 0,
+                "resource_saving": 0,
+                "volunteer_participation": 0,
+                "target_achievement": 0,
+                "participation_rate": 0
+            },
+            "경영지원": {
+                "name": "경영지원",
+                "icon": "📊",
+                "color": "#6f42c1",
+                "power_saving": 0,
+                "resource_saving": 0,
+                "volunteer_participation": 0,
+                "target_achievement": 0,
+                "participation_rate": 0
+            },
+            "개발센터": {
+                "name": "개발센터",
+                "icon": "🔧",
+                "color": "#fd7e14",
+                "power_saving": 0,
+                "resource_saving": 0,
+                "volunteer_participation": 0,
+                "target_achievement": 0,
+                "participation_rate": 0
+            }
+        }
+        
+        # 샘플 데이터 생성
+        sample_departments = {
+            "솔루션사업부": {
+                "name": "솔루션사업부",
+                "icon": "💻",
+                "color": "#007bff",
+                "power_saving": np.random.randint(15, 25),
+                "resource_saving": np.random.randint(20, 30),
+                "volunteer_participation": np.random.randint(8, 15),
+                "target_achievement": np.random.randint(85, 95),
+                "participation_rate": np.random.randint(90, 100)
+            },
+            "클라우드사업부": {
+                "name": "클라우드사업부",
+                "icon": "☁️",
+                "color": "#28a745",
+                "power_saving": np.random.randint(25, 35),
+                "resource_saving": np.random.randint(30, 40),
+                "volunteer_participation": np.random.randint(12, 20),
+                "target_achievement": np.random.randint(90, 100),
+                "participation_rate": np.random.randint(95, 100)
+            },
+            "전마실": {
+                "name": "전마실",
+                "icon": "🏢",
+                "color": "#ffc107",
+                "power_saving": np.random.randint(10, 20),
+                "resource_saving": np.random.randint(25, 35),
+                "volunteer_participation": np.random.randint(6, 12),
+                "target_achievement": np.random.randint(80, 90),
+                "participation_rate": np.random.randint(85, 95)
+            },
+            "물류사업": {
+                "name": "물류사업",
+                "icon": "🚛",
+                "color": "#20c997",
+                "power_saving": np.random.randint(30, 40),
+                "resource_saving": np.random.randint(35, 45),
+                "volunteer_participation": np.random.randint(15, 25),
+                "target_achievement": np.random.randint(95, 100),
+                "participation_rate": np.random.randint(98, 100)
+            },
+            "경영지원": {
+                "name": "경영지원",
+                "icon": "📊",
+                "color": "#6f42c1",
+                "power_saving": np.random.randint(12, 22),
+                "resource_saving": np.random.randint(18, 28),
+                "volunteer_participation": np.random.randint(10, 18),
+                "target_achievement": np.random.randint(82, 92),
+                "participation_rate": np.random.randint(88, 98)
+            },
+            "개발센터": {
+                "name": "개발센터",
+                "icon": "🔧",
+                "color": "#fd7e14",
+                "power_saving": np.random.randint(20, 30),
+                "resource_saving": np.random.randint(25, 35),
+                "volunteer_participation": np.random.randint(12, 20),
+                "target_achievement": np.random.randint(88, 98),
+                "participation_rate": np.random.randint(92, 100)
+            }
+        }
+        
+        # 전체 통계 계산
+        total_power_saving = sum(dept['power_saving'] for dept in sample_departments.values())
+        total_resource_saving = sum(dept['resource_saving'] for dept in sample_departments.values())
+        total_volunteer_participation = sum(dept['volunteer_participation'] for dept in sample_departments.values())
+        avg_target_achievement = round(sum(dept['target_achievement'] for dept in sample_departments.values()) / len(sample_departments), 1)
+        avg_participation_rate = round(sum(dept['participation_rate'] for dept in sample_departments.values()) / len(sample_departments), 1)
+        
+        st.session_state.esg_platform_data = {
+            "departments": sample_departments,
+            "total_power_saving": total_power_saving,
+            "total_resource_saving": total_resource_saving,
+            "total_volunteer_participation": total_volunteer_participation,
+            "avg_target_achievement": avg_target_achievement,
+            "avg_participation_rate": avg_participation_rate,
+            "participating_teams": len([dept for dept in sample_departments.values() if dept['participation_rate'] >= 80])
+        }
+    
+    st.markdown("---")
+    
+    # ESG 성과 공개 플랫폼 정보 카드
+    st.subheader("📋 ESG 성과 공개 플랫폼 정보")
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.info(f"""
+        **📅 일정**: {esg_platform_info['schedule']}
+        
+        **🎯 목표**: {esg_platform_info['goal']}
+        
+        **📝 설명**: {esg_platform_info['description']}
+        """)
+    
+    with col2:
+        st.success(f"""
+        **📊 투명성**: 부서별 성과 공개로 투명성 확보
+        
+        **🏆 경쟁성**: 부서 간 경쟁을 통한 성과 향상
+        
+        **📈 지속성**: 지속적인 ESG 경영 실현
+        """)
+    
+    st.markdown("---")
+    
+    # 전체 통계
+    st.subheader("📊 전체 통계")
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.metric(
+            label="평균 목표 달성률",
+            value=f"{st.session_state.esg_platform_data['avg_target_achievement']}%",
+            delta=f"+{np.random.randint(2, 5)}%"
+        )
+    
+    with col2:
+        st.metric(
+            label="평균 참여율",
+            value=f"{st.session_state.esg_platform_data['avg_participation_rate']}%",
+            delta=f"+{np.random.randint(3, 7)}%"
+        )
+    
+    with col3:
+        st.metric(
+            label="참여 부서",
+            value=f"{st.session_state.esg_platform_data['participating_teams']}개",
+            delta=f"+{np.random.randint(0, 2)}개"
+        )
+    
+    with col4:
+        st.metric(
+            label="총 전력 절감",
+            value=f"{st.session_state.esg_platform_data['total_power_saving']}%",
+            delta=f"+{np.random.randint(3, 8)}%"
+        )
+    
+    st.markdown("---")
+    
+    # 부서별 ESG 성과 대시보드
+    st.subheader("🏢 부서별 ESG 성과 대시보드")
+    
+    # 부서별 카드 레이아웃 (2열)
+    dept_names = list(st.session_state.esg_platform_data['departments'].keys())
+    
+    for i in range(0, len(dept_names), 2):
+        cols = st.columns(2)
+        for j in range(2):
+            if i + j < len(dept_names):
+                dept_key = dept_names[i + j]
+                dept_info = st.session_state.esg_platform_data['departments'][dept_key]
+                
+                with cols[j]:
+                    st.markdown(f"""
+                    <div style="
+                        border: 2px solid {dept_info['color']};
+                        border-radius: 10px;
+                        padding: 20px;
+                        text-align: center;
+                        background-color: #f8f9fa;
+                        margin-bottom: 10px;
+                    ">
+                        <h3 style="margin: 0; color: {dept_info['color']};">{dept_info['icon']}</h3>
+                        <h4 style="margin: 10px 0; color: #333;">{dept_info['name']}</h4>
+                        <p style="margin: 5px 0; font-size: 14px; font-weight: bold; color: {dept_info['color']};">
+                            목표달성: {dept_info['target_achievement']}%
+                        </p>
+                        <p style="margin: 5px 0; font-size: 12px; color: #007bff;">
+                            전력절감: {dept_info['power_saving']}%
+                        </p>
+                        <p style="margin: 5px 0; font-size: 12px; color: #28a745;">
+                            자원절약: {dept_info['resource_saving']}%
+                        </p>
+                        <p style="margin: 5px 0; font-size: 12px; color: #6c757d;">
+                            봉사참여: {dept_info['volunteer_participation']}명
+                        </p>
+                        <p style="margin: 5px 0; font-size: 12px; color: #6c757d;">
+                            참여율: {dept_info['participation_rate']}%
+                        </p>
+                    </div>
+                    """, unsafe_allow_html=True)
+    
+    st.markdown("---")
+    
+    # 부서별 목표 달성률 차트
+    st.subheader("🎯 부서별 목표 달성률")
+    
+    dept_names = list(st.session_state.esg_platform_data['departments'].keys())
+    target_achievements = [dept['target_achievement'] for dept in st.session_state.esg_platform_data['departments'].values()]
+    colors = [dept['color'] for dept in st.session_state.esg_platform_data['departments'].values()]
+    
+    fig_target = px.bar(
+        x=dept_names,
+        y=target_achievements,
+        title='부서별 목표 달성률',
+        labels={'x': '부서', 'y': '목표 달성률 (%)'},
+        color=dept_names,
+        color_discrete_sequence=colors
+    )
+    fig_target.update_layout(
+        xaxis_title="부서",
+        yaxis_title="목표 달성률 (%)"
+    )
+    st.plotly_chart(fig_target, use_container_width=True)
+    
+    st.markdown("---")
+    
+    # 부서별 참여율 차트
+    st.subheader("👥 부서별 참여율")
+    
+    participation_rates = [dept['participation_rate'] for dept in st.session_state.esg_platform_data['departments'].values()]
+    
+    fig_participation = px.bar(
+        x=dept_names,
+        y=participation_rates,
+        title='부서별 참여율',
+        labels={'x': '부서', 'y': '참여율 (%)'},
+        color=dept_names,
+        color_discrete_sequence=colors
+    )
+    fig_participation.update_layout(
+        xaxis_title="부서",
+        yaxis_title="참여율 (%)"
+    )
+    st.plotly_chart(fig_participation, use_container_width=True)
+    
+    st.markdown("---")
+    
+    # ESG 지표별 성과
+    st.subheader("📈 ESG 지표별 성과")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        power_savings = [dept['power_saving'] for dept in st.session_state.esg_platform_data['departments'].values()]
+        
+        fig_power = px.bar(
+            x=dept_names,
+            y=power_savings,
+            title='부서별 전력 절감률',
+            labels={'x': '부서', 'y': '전력 절감률 (%)'},
+            color=dept_names,
+            color_discrete_sequence=colors
+        )
+        fig_power.update_layout(xaxis_title="부서", yaxis_title="전력 절감률 (%)")
+        st.plotly_chart(fig_power, use_container_width=True)
+    
+    with col2:
+        resource_savings = [dept['resource_saving'] for dept in st.session_state.esg_platform_data['departments'].values()]
+        
+        fig_resource = px.bar(
+            x=dept_names,
+            y=resource_savings,
+            title='부서별 자원 절약률',
+            labels={'x': '부서', 'y': '자원 절약률 (%)'},
+            color=dept_names,
+            color_discrete_sequence=colors
+        )
+        fig_resource.update_layout(xaxis_title="부서", yaxis_title="자원 절약률 (%)")
+        st.plotly_chart(fig_resource, use_container_width=True)
+    
+    st.markdown("---")
+    
+    # 랭킹 시스템
+    st.subheader("🏆 부서별 ESG 성과 랭킹")
+    
+    # 종합 점수 계산 (목표달성률 40% + 참여율 30% + 전력절감 20% + 자원절약 10%)
+    rankings = []
+    for dept_key, dept_info in st.session_state.esg_platform_data['departments'].items():
+        total_score = (
+            dept_info['target_achievement'] * 0.4 +
+            dept_info['participation_rate'] * 0.3 +
+            dept_info['power_saving'] * 0.2 +
+            dept_info['resource_saving'] * 0.1
+        )
+        rankings.append({
+            'department': dept_info['name'],
+            'icon': dept_info['icon'],
+            'color': dept_info['color'],
+            'score': round(total_score, 1)
+        })
+    
+    # 점수순으로 정렬
+    rankings.sort(key=lambda x: x['score'], reverse=True)
+    
+    # 랭킹 표시
+    for i, rank in enumerate(rankings, 1):
+        medal = "🥇" if i == 1 else "🥈" if i == 2 else "🥉" if i == 3 else f"{i}위"
+        
+        col1, col2, col3 = st.columns([1, 3, 1])
+        with col1:
+            st.markdown(f"<h3 style='text-align: center; color: {rank['color']};'>{medal}</h3>", unsafe_allow_html=True)
+        with col2:
+            st.markdown(f"<h4 style='text-align: center; color: #333;'>{rank['icon']} {rank['department']}</h4>", unsafe_allow_html=True)
+        with col3:
+            st.markdown(f"<h3 style='text-align: center; color: {rank['color']};'>{rank['score']}점</h3>", unsafe_allow_html=True)
+    
+    st.markdown("---")
+    
+    # 데이터 관리
+    st.subheader("🔄 데이터 관리")
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        if st.button("📊 데이터 초기화", width='stretch'):
+            # 새로운 샘플 데이터 생성
+            sample_departments = {
+                "솔루션사업부": {
+                    "name": "솔루션사업부",
+                    "icon": "💻",
+                    "color": "#007bff",
+                    "power_saving": np.random.randint(15, 25),
+                    "resource_saving": np.random.randint(20, 30),
+                    "volunteer_participation": np.random.randint(8, 15),
+                    "target_achievement": np.random.randint(85, 95),
+                    "participation_rate": np.random.randint(90, 100)
+                },
+                "클라우드사업부": {
+                    "name": "클라우드사업부",
+                    "icon": "☁️",
+                    "color": "#28a745",
+                    "power_saving": np.random.randint(25, 35),
+                    "resource_saving": np.random.randint(30, 40),
+                    "volunteer_participation": np.random.randint(12, 20),
+                    "target_achievement": np.random.randint(90, 100),
+                    "participation_rate": np.random.randint(95, 100)
+                },
+                "전마실": {
+                    "name": "전마실",
+                    "icon": "🏢",
+                    "color": "#ffc107",
+                    "power_saving": np.random.randint(10, 20),
+                    "resource_saving": np.random.randint(25, 35),
+                    "volunteer_participation": np.random.randint(6, 12),
+                    "target_achievement": np.random.randint(80, 90),
+                    "participation_rate": np.random.randint(85, 95)
+                },
+                "물류사업": {
+                    "name": "물류사업",
+                    "icon": "🚛",
+                    "color": "#20c997",
+                    "power_saving": np.random.randint(30, 40),
+                    "resource_saving": np.random.randint(35, 45),
+                    "volunteer_participation": np.random.randint(15, 25),
+                    "target_achievement": np.random.randint(95, 100),
+                    "participation_rate": np.random.randint(98, 100)
+                },
+                "경영지원": {
+                    "name": "경영지원",
+                    "icon": "📊",
+                    "color": "#6f42c1",
+                    "power_saving": np.random.randint(12, 22),
+                    "resource_saving": np.random.randint(18, 28),
+                    "volunteer_participation": np.random.randint(10, 18),
+                    "target_achievement": np.random.randint(82, 92),
+                    "participation_rate": np.random.randint(88, 98)
+                },
+                "개발센터": {
+                    "name": "개발센터",
+                    "icon": "🔧",
+                    "color": "#fd7e14",
+                    "power_saving": np.random.randint(20, 30),
+                    "resource_saving": np.random.randint(25, 35),
+                    "volunteer_participation": np.random.randint(12, 20),
+                    "target_achievement": np.random.randint(88, 98),
+                    "participation_rate": np.random.randint(92, 100)
+                }
+            }
+            
+            # 전체 통계 재계산
+            total_power_saving = sum(dept['power_saving'] for dept in sample_departments.values())
+            total_resource_saving = sum(dept['resource_saving'] for dept in sample_departments.values())
+            total_volunteer_participation = sum(dept['volunteer_participation'] for dept in sample_departments.values())
+            avg_target_achievement = round(sum(dept['target_achievement'] for dept in sample_departments.values()) / len(sample_departments), 1)
+            avg_participation_rate = round(sum(dept['participation_rate'] for dept in sample_departments.values()) / len(sample_departments), 1)
+            
+            st.session_state.esg_platform_data = {
+                "departments": sample_departments,
+                "total_power_saving": total_power_saving,
+                "total_resource_saving": total_resource_saving,
+                "total_volunteer_participation": total_volunteer_participation,
+                "avg_target_achievement": avg_target_achievement,
+                "avg_participation_rate": avg_participation_rate,
+                "participating_teams": len([dept for dept in sample_departments.values() if dept['participation_rate'] >= 80])
+            }
+            st.success("샘플 데이터로 초기화되었습니다!")
+            st.rerun()
+    
+    with col2:
+        if st.button("📈 통계 새로고침", width='stretch'):
+            st.info("통계 데이터를 새로고침했습니다!")
+    
+    with col3:
+        if st.button("📋 성과 리포트", width='stretch'):
+            st.info("ESG 성과 리포트를 생성했습니다!")
+
+# 지역 사회 연계 봉사 프로그램 페이지
+elif menu == "지역 사회 연계 봉사":
+    st.title("🤝 지역 사회 연계 봉사 프로그램")
+    st.write("환경정화, 장애인 시설 봉사, 지역 농가 돕기 등 다양한 봉사 활동을 통해 사회적 가치를 창출합니다.")
+    
+    # 봉사 프로그램 정보
+    volunteer_info = {
+        "name": "지역 사회 연계 봉사 프로그램",
+        "description": "환경정화, 장애인 시설 봉사, 지역 농가 돕기 등 활동 정례화",
+        "schedule": "월 2회 정기 봉사, 분기별 특별 봉사",
+        "goal": "참여 시간, 봉사 인원, 사회적 가치 환산 점수 향상"
+    }
+    
+    # 세션 상태 초기화 (샘플 데이터 포함)
+    if 'volunteer_data' not in st.session_state:
+        # 봉사 활동 유형별 데이터
+        volunteer_activities = {
+            "환경정화": {
+                "name": "환경정화 봉사",
+                "icon": "🌱",
+                "color": "#28a745",
+                "participants": 0,
+                "total_hours": 0,
+                "social_value": 0,
+                "frequency": "월 2회",
+                "location": "한강공원, 도심 공원"
+            },
+            "장애인시설": {
+                "name": "장애인 시설 봉사",
+                "icon": "♿",
+                "color": "#007bff",
+                "participants": 0,
+                "total_hours": 0,
+                "social_value": 0,
+                "frequency": "월 1회",
+                "location": "지역 장애인 복지관"
+            },
+            "지역농가": {
+                "name": "지역 농가 돕기",
+                "icon": "🚜",
+                "color": "#ffc107",
+                "participants": 0,
+                "total_hours": 0,
+                "social_value": 0,
+                "frequency": "분기 1회",
+                "location": "경기도 농장"
+            },
+            "노인복지": {
+                "name": "노인 복지 봉사",
+                "icon": "👴",
+                "color": "#6f42c1",
+                "participants": 0,
+                "total_hours": 0,
+                "social_value": 0,
+                "frequency": "월 1회",
+                "location": "지역 노인복지관"
+            },
+            "아동복지": {
+                "name": "아동 복지 봉사",
+                "icon": "👶",
+                "color": "#fd7e14",
+                "participants": 0,
+                "total_hours": 0,
+                "social_value": 0,
+                "frequency": "월 1회",
+                "location": "지역 아동센터"
+            }
+        }
+        
+        # 샘플 데이터 생성
+        sample_activities = {
+            "환경정화": {
+                "name": "환경정화 봉사",
+                "icon": "🌱",
+                "color": "#28a745",
+                "participants": np.random.randint(25, 40),
+                "total_hours": np.random.randint(200, 320),
+                "social_value": np.random.randint(150, 250),
+                "frequency": "월 2회",
+                "location": "한강공원, 도심 공원"
+            },
+            "장애인시설": {
+                "name": "장애인 시설 봉사",
+                "icon": "♿",
+                "color": "#007bff",
+                "participants": np.random.randint(15, 25),
+                "total_hours": np.random.randint(120, 200),
+                "social_value": np.random.randint(100, 180),
+                "frequency": "월 1회",
+                "location": "지역 장애인 복지관"
+            },
+            "지역농가": {
+                "name": "지역 농가 돕기",
+                "icon": "🚜",
+                "color": "#ffc107",
+                "participants": np.random.randint(20, 35),
+                "total_hours": np.random.randint(160, 280),
+                "social_value": np.random.randint(120, 200),
+                "frequency": "분기 1회",
+                "location": "경기도 농장"
+            },
+            "노인복지": {
+                "name": "노인 복지 봉사",
+                "icon": "👴",
+                "color": "#6f42c1",
+                "participants": np.random.randint(18, 30),
+                "total_hours": np.random.randint(140, 240),
+                "social_value": np.random.randint(110, 190),
+                "frequency": "월 1회",
+                "location": "지역 노인복지관"
+            },
+            "아동복지": {
+                "name": "아동 복지 봉사",
+                "icon": "👶",
+                "color": "#fd7e14",
+                "participants": np.random.randint(22, 35),
+                "total_hours": np.random.randint(180, 300),
+                "social_value": np.random.randint(130, 220),
+                "frequency": "월 1회",
+                "location": "지역 아동센터"
+            }
+        }
+        
+        # 전체 통계 계산
+        total_participants = sum(activity['participants'] for activity in sample_activities.values())
+        total_hours = sum(activity['total_hours'] for activity in sample_activities.values())
+        total_social_value = sum(activity['social_value'] for activity in sample_activities.values())
+        avg_hours_per_person = round(total_hours / total_participants, 1) if total_participants > 0 else 0
+        
+        st.session_state.volunteer_data = {
+            "activities": sample_activities,
+            "total_participants": total_participants,
+            "total_hours": total_hours,
+            "total_social_value": total_social_value,
+            "avg_hours_per_person": avg_hours_per_person,
+            "participation_rate": np.random.randint(70, 85)
+        }
+    
+    st.markdown("---")
+    
+    # 봉사 프로그램 정보 카드
+    st.subheader("📋 봉사 프로그램 정보")
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.info(f"""
+        **📅 일정**: {volunteer_info['schedule']}
+        
+        **🎯 목표**: {volunteer_info['goal']}
+        
+        **📝 설명**: {volunteer_info['description']}
+        """)
+    
+    with col2:
+        st.success(f"""
+        **🤝 사회효과**: 지역사회와의 유대 강화
+        
+        **💚 환경효과**: 환경 보호 및 정화 활동
+        
+        **❤️ 인적효과**: 임직원 사회적 책임 의식 향상
+        """)
+    
+    st.markdown("---")
+    
+    # 전체 통계
+    st.subheader("📊 전체 통계")
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.metric(
+            label="총 참여자",
+            value=f"{st.session_state.volunteer_data['total_participants']}명",
+            delta=f"+{np.random.randint(3, 8)}명"
+        )
+    
+    with col2:
+        st.metric(
+            label="총 봉사시간",
+            value=f"{st.session_state.volunteer_data['total_hours']}시간",
+            delta=f"+{np.random.randint(20, 40)}시간"
+        )
+    
+    with col3:
+        st.metric(
+            label="사회적 가치",
+            value=f"{st.session_state.volunteer_data['total_social_value']}점",
+            delta=f"+{np.random.randint(15, 30)}점"
+        )
+    
+    with col4:
+        st.metric(
+            label="참여율",
+            value=f"{st.session_state.volunteer_data['participation_rate']}%",
+            delta=f"+{np.random.randint(2, 5)}%"
+        )
+    
+    st.markdown("---")
+    
+    # 오늘 날짜 표시
+    today = datetime.now().strftime("%Y년 %m월 %d일")
+    st.subheader(f"📅 {today} 봉사 활동 현황")
+    
+    # 봉사 활동별 카드 레이아웃
+    cols = st.columns(5)
+    
+    for i, (activity_key, activity_info) in enumerate(st.session_state.volunteer_data['activities'].items()):
+        with cols[i]:
+            st.markdown(f"""
+            <div style="
+                border: 2px solid {activity_info['color']};
+                border-radius: 10px;
+                padding: 20px;
+                text-align: center;
+                background-color: #f8f9fa;
+                margin-bottom: 10px;
+            ">
+                <h3 style="margin: 0; color: {activity_info['color']};">{activity_info['icon']}</h3>
+                <h4 style="margin: 10px 0; color: #333;">{activity_info['name']}</h4>
+                <p style="margin: 5px 0; font-size: 16px; font-weight: bold; color: {activity_info['color']};">
+                    참여자: {activity_info['participants']}명
+                </p>
+                <p style="margin: 5px 0; font-size: 14px; color: #007bff;">
+                    봉사시간: {activity_info['total_hours']}시간
+                </p>
+                <p style="margin: 5px 0; font-size: 12px; color: #6c757d;">
+                    사회가치: {activity_info['social_value']}점
+                </p>
+                <p style="margin: 5px 0; font-size: 12px; color: #6c757d;">
+                    빈도: {activity_info['frequency']}
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # 봉사 참여 버튼
+            if st.button(f"봉사 참여", key=f"volunteer_{activity_key}", use_container_width=True):
+                st.session_state.volunteer_data['activities'][activity_key]['participants'] += 1
+                additional_hours = np.random.randint(4, 8)
+                st.session_state.volunteer_data['activities'][activity_key]['total_hours'] += additional_hours
+                additional_value = np.random.randint(8, 15)
+                st.session_state.volunteer_data['activities'][activity_key]['social_value'] += additional_value
+                
+                # 전체 통계 업데이트
+                st.session_state.volunteer_data['total_participants'] += 1
+                st.session_state.volunteer_data['total_hours'] += additional_hours
+                st.session_state.volunteer_data['total_social_value'] += additional_value
+                st.session_state.volunteer_data['avg_hours_per_person'] = round(st.session_state.volunteer_data['total_hours'] / st.session_state.volunteer_data['total_participants'], 1)
+                
+                st.success(f"{activity_info['name']}에 {additional_hours}시간 참여 완료! 🤝")
+                st.rerun()
+    
+    st.markdown("---")
+    
+    # 봉사 활동별 참여자 수 차트
+    st.subheader("👥 봉사 활동별 참여자 수")
+    
+    activity_names = list(st.session_state.volunteer_data['activities'].keys())
+    participants_counts = [activity['participants'] for activity in st.session_state.volunteer_data['activities'].values()]
+    colors = [activity['color'] for activity in st.session_state.volunteer_data['activities'].values()]
+    
+    fig_participants = px.bar(
+        x=activity_names,
+        y=participants_counts,
+        title='봉사 활동별 참여자 수',
+        labels={'x': '봉사 활동', 'y': '참여자 수'},
+        color=activity_names,
+        color_discrete_sequence=colors
+    )
+    fig_participants.update_layout(
+        xaxis_title="봉사 활동",
+        yaxis_title="참여자 수"
+    )
+    st.plotly_chart(fig_participants, use_container_width=True)
+    
+    st.markdown("---")
+    
+    # 봉사 시간별 현황 차트
+    st.subheader("⏰ 봉사 활동별 총 시간")
+    
+    total_hours = [activity['total_hours'] for activity in st.session_state.volunteer_data['activities'].values()]
+    
+    fig_hours = px.bar(
+        x=activity_names,
+        y=total_hours,
+        title='봉사 활동별 총 시간',
+        labels={'x': '봉사 활동', 'y': '총 시간 (시간)'},
+        color=activity_names,
+        color_discrete_sequence=colors
+    )
+    fig_hours.update_layout(
+        xaxis_title="봉사 활동",
+        yaxis_title="총 시간 (시간)"
+    )
+    st.plotly_chart(fig_hours, use_container_width=True)
+    
+    st.markdown("---")
+    
+    # 사회적 가치 환산 점수 차트
+    st.subheader("💎 사회적 가치 환산 점수")
+    
+    social_values = [activity['social_value'] for activity in st.session_state.volunteer_data['activities'].values()]
+    
+    fig_social = px.bar(
+        x=activity_names,
+        y=social_values,
+        title='봉사 활동별 사회적 가치 점수',
+        labels={'x': '봉사 활동', 'y': '사회적 가치 점수'},
+        color=activity_names,
+        color_discrete_sequence=colors
+    )
+    fig_social.update_layout(
+        xaxis_title="봉사 활동",
+        yaxis_title="사회적 가치 점수"
+    )
+    st.plotly_chart(fig_social, use_container_width=True)
+    
+    st.markdown("---")
+    
+    # 봉사 활동 상세 정보
+    st.subheader("📋 봉사 활동 상세 정보")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.info("""
+        **🌱 환경정화 봉사**
+        - 한강공원, 도심 공원 청소
+        - 월 2회 정기 활동
+        - 환경 보호 인식 제고
+        
+        **♿ 장애인 시설 봉사**
+        - 지역 장애인 복지관 지원
+        - 월 1회 정기 활동
+        - 사회적 포용성 강화
+        """)
+    
+    with col2:
+        st.success("""
+        **🚜 지역 농가 돕기**
+        - 경기도 농장 농작업 지원
+        - 분기 1회 특별 활동
+        - 지역 경제 활성화
+        
+        **👴👶 노인/아동 복지**
+        - 지역 복지관 지원
+        - 월 1회 정기 활동
+        - 사회적 약자 배려
+        """)
+    
+    st.markdown("---")
+    
+    # 사회적 가치 환산 기준
+    st.subheader("📊 사회적 가치 환산 기준")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.metric(
+            label="환경정화",
+            value="시간당 1.2점",
+            delta="환경 보호 효과"
+        )
+    
+    with col2:
+        st.metric(
+            label="장애인/노인/아동",
+            value="시간당 1.5점",
+            delta="사회적 포용 효과"
+        )
+    
+    with col3:
+        st.metric(
+            label="지역 농가",
+            value="시간당 1.0점",
+            delta="지역 경제 효과"
+        )
+    
+    st.markdown("---")
+    
+    # 봉사 참여 등록
+    st.subheader("📝 새 봉사 참여 등록")
+    
+    with st.form("volunteer_registration"):
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            volunteer_name = st.text_input("참여자명", placeholder="예: 홍길동")
+            activity_type = st.selectbox("봉사 활동 유형", ["환경정화", "장애인시설", "지역농가", "노인복지", "아동복지"])
+            volunteer_hours = st.number_input("봉사 시간", min_value=1, max_value=8, value=4)
+        
+        with col2:
+            volunteer_date = st.date_input("봉사 날짜", value=datetime.now().date())
+            volunteer_location = st.text_input("봉사 장소", placeholder="예: 한강공원")
+            volunteer_department = st.selectbox("소속 부서", ["IT개발팀", "시설관리팀", "구매팀", "환경팀", "마케팅팀", "인사팀"])
+        
+        volunteer_description = st.text_area("봉사 활동 내용", placeholder="봉사 활동의 구체적인 내용과 느낀 점을 작성해주세요.", height=100)
+        
+        submitted = st.form_submit_button("봉사 참여 등록")
+        if submitted:
+            if volunteer_name and volunteer_location and volunteer_description:
+                # 사회적 가치 점수 계산
+                value_multipliers = {
+                    "환경정화": 1.2,
+                    "장애인시설": 1.5,
+                    "지역농가": 1.0,
+                    "노인복지": 1.5,
+                    "아동복지": 1.5
+                }
+                social_value_points = round(volunteer_hours * value_multipliers[activity_type], 1)
+                
+                st.success(f"{volunteer_name}님의 {activity_type} 봉사가 성공적으로 등록되었습니다! 🤝")
+                st.info(f"봉사 시간: {volunteer_hours}시간, 사회적 가치: {social_value_points}점")
+            else:
+                st.error("모든 필수 항목을 입력해주세요!")
+    
+    st.markdown("---")
+    
+    # 봉사 성과 요약
+    st.subheader("🏆 봉사 성과 요약")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.metric(
+            label="평균 봉사시간",
+            value=f"{st.session_state.volunteer_data['avg_hours_per_person']}시간",
+            delta="1인당 평균"
+        )
+    
+    with col2:
+        st.metric(
+            label="사회적 가치",
+            value=f"{st.session_state.volunteer_data['total_social_value']}점",
+            delta="총 누적 점수"
+        )
+    
+    with col3:
+        st.metric(
+            label="참여 부서",
+            value="6개 부서",
+            delta="전 부서 참여"
+        )
+    
+    st.markdown("---")
+    
+    # 데이터 관리
+    st.subheader("🔄 데이터 관리")
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        if st.button("📊 데이터 초기화", width='stretch'):
+            # 새로운 샘플 데이터 생성
+            sample_activities = {
+                "환경정화": {
+                    "name": "환경정화 봉사",
+                    "icon": "🌱",
+                    "color": "#28a745",
+                    "participants": np.random.randint(25, 40),
+                    "total_hours": np.random.randint(200, 320),
+                    "social_value": np.random.randint(150, 250),
+                    "frequency": "월 2회",
+                    "location": "한강공원, 도심 공원"
+                },
+                "장애인시설": {
+                    "name": "장애인 시설 봉사",
+                    "icon": "♿",
+                    "color": "#007bff",
+                    "participants": np.random.randint(15, 25),
+                    "total_hours": np.random.randint(120, 200),
+                    "social_value": np.random.randint(100, 180),
+                    "frequency": "월 1회",
+                    "location": "지역 장애인 복지관"
+                },
+                "지역농가": {
+                    "name": "지역 농가 돕기",
+                    "icon": "🚜",
+                    "color": "#ffc107",
+                    "participants": np.random.randint(20, 35),
+                    "total_hours": np.random.randint(160, 280),
+                    "social_value": np.random.randint(120, 200),
+                    "frequency": "분기 1회",
+                    "location": "경기도 농장"
+                },
+                "노인복지": {
+                    "name": "노인 복지 봉사",
+                    "icon": "👴",
+                    "color": "#6f42c1",
+                    "participants": np.random.randint(18, 30),
+                    "total_hours": np.random.randint(140, 240),
+                    "social_value": np.random.randint(110, 190),
+                    "frequency": "월 1회",
+                    "location": "지역 노인복지관"
+                },
+                "아동복지": {
+                    "name": "아동 복지 봉사",
+                    "icon": "👶",
+                    "color": "#fd7e14",
+                    "participants": np.random.randint(22, 35),
+                    "total_hours": np.random.randint(180, 300),
+                    "social_value": np.random.randint(130, 220),
+                    "frequency": "월 1회",
+                    "location": "지역 아동센터"
+                }
+            }
+            
+            # 전체 통계 재계산
+            total_participants = sum(activity['participants'] for activity in sample_activities.values())
+            total_hours = sum(activity['total_hours'] for activity in sample_activities.values())
+            total_social_value = sum(activity['social_value'] for activity in sample_activities.values())
+            avg_hours_per_person = round(total_hours / total_participants, 1) if total_participants > 0 else 0
+            
+            st.session_state.volunteer_data = {
+                "activities": sample_activities,
+                "total_participants": total_participants,
+                "total_hours": total_hours,
+                "total_social_value": total_social_value,
+                "avg_hours_per_person": avg_hours_per_person,
+                "participation_rate": np.random.randint(70, 85)
+            }
+            st.success("샘플 데이터로 초기화되었습니다!")
+            st.rerun()
+    
+    with col2:
+        if st.button("📈 통계 새로고침", width='stretch'):
+            st.info("통계 데이터를 새로고침했습니다!")
+    
+    with col3:
+        if st.button("📋 봉사 리포트", width='stretch'):
+            st.info("봉사 활동 리포트를 생성했습니다!")
+
+# 그린리본 인증 캠페인 페이지
+elif menu == "그린리본 인증 캠페인":
+    st.title("🏆 그린리본 인증 캠페인")
+    st.write("사무실 카페·편의공간에서 ESG 제품 이용 시 '인증 스탬프'를 적립하여 친환경 소비를 장려합니다.")
+    
+    # 그린리본 인증 캠페인 정보
+    green_ribbon_info = {
+        "name": "그린리본 인증 캠페인",
+        "description": "사무실 카페·편의공간에서 ESG 제품 이용 시 '인증 스탬프' 적립",
+        "schedule": "상시 운영",
+        "goal": "ESG 제품 구매비율 증가율, 캠페인 참여율 향상"
+    }
+    
+    # 세션 상태 초기화 (샘플 데이터 포함)
+    if 'green_ribbon_data' not in st.session_state:
+        # 사옥별 카페 정보
+        cafes = {
+            "잠실": {
+                "name": "잠실 카페",
+                "image": "☕",
+                "participants": 0,
+                "stamps_collected": 0,
+                "esg_products": 0,
+                "total_purchases": 0
+            },
+            "판교IT": {
+                "name": "판교 IT 카페", 
+                "image": "☕",
+                "participants": 0,
+                "stamps_collected": 0,
+                "esg_products": 0,
+                "total_purchases": 0
+            },
+            "판교물류": {
+                "name": "판교 물류 카페",
+                "image": "☕", 
+                "participants": 0,
+                "stamps_collected": 0,
+                "esg_products": 0,
+                "total_purchases": 0
+            },
+            "상암": {
+                "name": "상암 카페",
+                "image": "☕",
+                "participants": 0,
+                "stamps_collected": 0,
+                "esg_products": 0,
+                "total_purchases": 0
+            },
+            "수원": {
+                "name": "수원 카페",
+                "image": "☕",
+                "participants": 0,
+                "stamps_collected": 0,
+                "esg_products": 0,
+                "total_purchases": 0
+            }
+        }
+        
+        # 샘플 데이터 생성
+        sample_cafes = {
+            "잠실": {
+                "name": "잠실 카페",
+                "image": "☕",
+                "participants": np.random.randint(35, 55),
+                "stamps_collected": np.random.randint(120, 180),
+                "esg_products": np.random.randint(25, 40),
+                "total_purchases": np.random.randint(80, 120)
+            },
+            "판교IT": {
+                "name": "판교 IT 카페", 
+                "image": "☕",
+                "participants": np.random.randint(40, 60),
+                "stamps_collected": np.random.randint(140, 200),
+                "esg_products": np.random.randint(30, 45),
+                "total_purchases": np.random.randint(90, 130)
+            },
+            "판교물류": {
+                "name": "판교 물류 카페",
+                "image": "☕", 
+                "participants": np.random.randint(25, 40),
+                "stamps_collected": np.random.randint(100, 150),
+                "esg_products": np.random.randint(20, 35),
+                "total_purchases": np.random.randint(60, 100)
+            },
+            "상암": {
+                "name": "상암 카페",
+                "image": "☕",
+                "participants": np.random.randint(30, 45),
+                "stamps_collected": np.random.randint(110, 160),
+                "esg_products": np.random.randint(22, 38),
+                "total_purchases": np.random.randint(70, 110)
+            },
+            "수원": {
+                "name": "수원 카페",
+                "image": "☕",
+                "participants": np.random.randint(20, 35),
+                "stamps_collected": np.random.randint(80, 130),
+                "esg_products": np.random.randint(18, 30),
+                "total_purchases": np.random.randint(50, 90)
+            }
+        }
+        
+        # 전체 통계 계산
+        total_participants = sum(cafe['participants'] for cafe in sample_cafes.values())
+        total_stamps = sum(cafe['stamps_collected'] for cafe in sample_cafes.values())
+        total_esg_products = sum(cafe['esg_products'] for cafe in sample_cafes.values())
+        total_purchases = sum(cafe['total_purchases'] for cafe in sample_cafes.values())
+        esg_purchase_rate = round((total_esg_products / total_purchases) * 100, 1) if total_purchases > 0 else 0
+        
+        st.session_state.green_ribbon_data = {
+            "cafes": sample_cafes,
+            "total_participants": total_participants,
+            "total_stamps": total_stamps,
+            "total_esg_products": total_esg_products,
+            "total_purchases": total_purchases,
+            "esg_purchase_rate": esg_purchase_rate,
+            "participation_rate": np.random.randint(75, 90)
+        }
+    
+    st.markdown("---")
+    
+    # 그린리본 인증 캠페인 정보 카드
+    st.subheader("📋 그린리본 인증 캠페인 정보")
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.info(f"""
+        **📅 운영**: {green_ribbon_info['schedule']}
+        
+        **🎯 목표**: {green_ribbon_info['goal']}
+        
+        **📝 설명**: {green_ribbon_info['description']}
+        """)
+    
+    with col2:
+        st.success(f"""
+        **🌱 환경효과**: 친환경 제품 구매 증가
+        
+        **💚 사회효과**: ESG 인식 확산
+        
+        **🎁 혜택효과**: 스탬프 적립으로 리워드 제공
+        """)
+    
+    st.markdown("---")
+    
+    # 전체 통계
+    st.subheader("📊 전체 통계")
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.metric(
+            label="총 참여자",
+            value=f"{st.session_state.green_ribbon_data['total_participants']}명",
+            delta=f"+{np.random.randint(5, 12)}명"
+        )
+    
+    with col2:
+        st.metric(
+            label="총 스탬프",
+            value=f"{st.session_state.green_ribbon_data['total_stamps']}개",
+            delta=f"+{np.random.randint(15, 30)}개"
+        )
+    
+    with col3:
+        st.metric(
+            label="ESG 구매비율",
+            value=f"{st.session_state.green_ribbon_data['esg_purchase_rate']}%",
+            delta=f"+{np.random.randint(2, 5)}%"
+        )
+    
+    with col4:
+        st.metric(
+            label="참여율",
+            value=f"{st.session_state.green_ribbon_data['participation_rate']}%",
+            delta=f"+{np.random.randint(3, 8)}%"
+        )
+    
+    st.markdown("---")
+    
+    # 오늘 날짜 표시
+    today = datetime.now().strftime("%Y년 %m월 %d일")
+    st.subheader(f"📅 {today} 그린리본 인증 현황")
+    
+    # 사옥별 카페 카드 레이아웃
+    cols = st.columns(5)
+    
+    for i, (cafe_key, cafe_info) in enumerate(st.session_state.green_ribbon_data['cafes'].items()):
+        with cols[i]:
+            st.markdown(f"""
+            <div style="
+                border: 2px solid #e0e0e0;
+                border-radius: 10px;
+                padding: 20px;
+                text-align: center;
+                background-color: #f8f9fa;
+                margin-bottom: 10px;
+            ">
+                <h3 style="margin: 0; color: #28a745;">{cafe_info['image']}</h3>
+                <h4 style="margin: 10px 0; color: #333;">{cafe_info['name']}</h4>
+                <p style="margin: 5px 0; font-size: 16px; font-weight: bold; color: #28a745;">
+                    참여자: {cafe_info['participants']}명
+                </p>
+                <p style="margin: 5px 0; font-size: 14px; color: #007bff;">
+                    스탬프: {cafe_info['stamps_collected']}개
+                </p>
+                <p style="margin: 5px 0; font-size: 12px; color: #6c757d;">
+                    ESG구매: {cafe_info['esg_products']}건
+                </p>
+                <p style="margin: 5px 0; font-size: 12px; color: #6c757d;">
+                    총구매: {cafe_info['total_purchases']}건
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # 스탬프 적립 버튼
+            if st.button(f"스탬프 적립", key=f"stamp_{cafe_key}", use_container_width=True):
+                st.session_state.green_ribbon_data['cafes'][cafe_key]['participants'] += 1
+                additional_stamps = np.random.randint(2, 5)
+                st.session_state.green_ribbon_data['cafes'][cafe_key]['stamps_collected'] += additional_stamps
+                additional_esg = np.random.randint(1, 3)
+                st.session_state.green_ribbon_data['cafes'][cafe_key]['esg_products'] += additional_esg
+                additional_purchases = np.random.randint(2, 4)
+                st.session_state.green_ribbon_data['cafes'][cafe_key]['total_purchases'] += additional_purchases
+                
+                # 전체 통계 업데이트
+                st.session_state.green_ribbon_data['total_participants'] += 1
+                st.session_state.green_ribbon_data['total_stamps'] += additional_stamps
+                st.session_state.green_ribbon_data['total_esg_products'] += additional_esg
+                st.session_state.green_ribbon_data['total_purchases'] += additional_purchases
+                st.session_state.green_ribbon_data['esg_purchase_rate'] = round((st.session_state.green_ribbon_data['total_esg_products'] / st.session_state.green_ribbon_data['total_purchases']) * 100, 1)
+                
+                st.success(f"{cafe_info['name']}에서 스탬프 {additional_stamps}개 적립 완료! 🏆")
+                st.rerun()
+    
+    st.markdown("---")
+    
+    # 사옥별 스탬프 적립 현황 차트
+    st.subheader("🏆 사옥별 스탬프 적립 현황")
+    
+    cafe_names = list(st.session_state.green_ribbon_data['cafes'].keys())
+    stamps_collected = [cafe['stamps_collected'] for cafe in st.session_state.green_ribbon_data['cafes'].values()]
+    
+    fig_stamps = px.bar(
+        x=cafe_names,
+        y=stamps_collected,
+        title='사옥별 스탬프 적립 수',
+        labels={'x': '사옥', 'y': '스탬프 수'},
+        color=stamps_collected,
+        color_continuous_scale='Greens'
+    )
+    fig_stamps.update_layout(
+        xaxis_title="사옥",
+        yaxis_title="스탬프 수"
+    )
+    st.plotly_chart(fig_stamps, use_container_width=True)
+    
+    st.markdown("---")
+    
+    # 사옥별 ESG 구매비율 차트
+    st.subheader("🌱 사옥별 ESG 구매비율")
+    
+    esg_rates = []
+    for cafe in st.session_state.green_ribbon_data['cafes'].values():
+        rate = round((cafe['esg_products'] / cafe['total_purchases']) * 100, 1) if cafe['total_purchases'] > 0 else 0
+        esg_rates.append(rate)
+    
+    fig_esg = px.bar(
+        x=cafe_names,
+        y=esg_rates,
+        title='사옥별 ESG 제품 구매비율',
+        labels={'x': '사옥', 'y': 'ESG 구매비율 (%)'},
+        color=esg_rates,
+        color_continuous_scale='Blues'
+    )
+    fig_esg.update_layout(
+        xaxis_title="사옥",
+        yaxis_title="ESG 구매비율 (%)"
+    )
+    st.plotly_chart(fig_esg, use_container_width=True)
+    
+    st.markdown("---")
+    
+    # ESG 제품 정보
+    st.subheader("🌿 인증 가능한 ESG 제품")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.info("""
+        **☕ 카페 제품**
+        - 친환경 컵 사용
+        - 유기농 원두
+        - 재활용 포장재
+        - 지역 농산물 사용
+        """)
+    
+    with col2:
+        st.success("""
+        **🛒 편의공간 제품**
+        - 친환경 포장재
+        - 유기농 간식
+        - 재활용 용품
+        - 공정무역 제품
+        """)
+    
+    st.markdown("---")
+    
+    # 스탬프 적립 규칙
+    st.subheader("📋 스탬프 적립 규칙")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.metric(
+            label="ESG 제품 구매",
+            value="1개당 1스탬프",
+            delta="기본 적립"
+        )
+    
+    with col2:
+        st.metric(
+            label="친환경 컵 사용",
+            value="1회당 2스탬프",
+            delta="추가 적립"
+        )
+    
+    with col3:
+        st.metric(
+            label="리워드 교환",
+            value="10스탬프",
+            delta="무료 음료"
+        )
+    
+    st.markdown("---")
+    
+    # 환경 효과
+    st.subheader("🌱 환경 효과")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    total_esg = st.session_state.green_ribbon_data['total_esg_products']
+    
+    with col1:
+        st.metric(
+            label="CO2 절약",
+            value=f"{total_esg * 0.5:.1f}kg",
+            delta="월간 절약"
+        )
+    
+    with col2:
+        st.metric(
+            label="플라스틱 감소",
+            value=f"{total_esg * 0.3:.1f}개",
+            delta="월간 감소"
+        )
+    
+    with col3:
+        st.metric(
+            label="재활용률",
+            value=f"{np.random.randint(85, 95)}%",
+            delta="월간 재활용"
+        )
+    
+    st.markdown("---")
+    
+    # 데이터 관리
+    st.subheader("🔄 데이터 관리")
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        if st.button("📊 데이터 초기화", width='stretch'):
+            # 새로운 샘플 데이터 생성
+            sample_cafes = {
+                "잠실": {
+                    "name": "잠실 카페",
+                    "image": "☕",
+                    "participants": np.random.randint(35, 55),
+                    "stamps_collected": np.random.randint(120, 180),
+                    "esg_products": np.random.randint(25, 40),
+                    "total_purchases": np.random.randint(80, 120)
+                },
+                "판교IT": {
+                    "name": "판교 IT 카페", 
+                    "image": "☕",
+                    "participants": np.random.randint(40, 60),
+                    "stamps_collected": np.random.randint(140, 200),
+                    "esg_products": np.random.randint(30, 45),
+                    "total_purchases": np.random.randint(90, 130)
+                },
+                "판교물류": {
+                    "name": "판교 물류 카페",
+                    "image": "☕", 
+                    "participants": np.random.randint(25, 40),
+                    "stamps_collected": np.random.randint(100, 150),
+                    "esg_products": np.random.randint(20, 35),
+                    "total_purchases": np.random.randint(60, 100)
+                },
+                "상암": {
+                    "name": "상암 카페",
+                    "image": "☕",
+                    "participants": np.random.randint(30, 45),
+                    "stamps_collected": np.random.randint(110, 160),
+                    "esg_products": np.random.randint(22, 38),
+                    "total_purchases": np.random.randint(70, 110)
+                },
+                "수원": {
+                    "name": "수원 카페",
+                    "image": "☕",
+                    "participants": np.random.randint(20, 35),
+                    "stamps_collected": np.random.randint(80, 130),
+                    "esg_products": np.random.randint(18, 30),
+                    "total_purchases": np.random.randint(50, 90)
+                }
+            }
+            
+            # 전체 통계 재계산
+            total_participants = sum(cafe['participants'] for cafe in sample_cafes.values())
+            total_stamps = sum(cafe['stamps_collected'] for cafe in sample_cafes.values())
+            total_esg_products = sum(cafe['esg_products'] for cafe in sample_cafes.values())
+            total_purchases = sum(cafe['total_purchases'] for cafe in sample_cafes.values())
+            esg_purchase_rate = round((total_esg_products / total_purchases) * 100, 1) if total_purchases > 0 else 0
+            
+            st.session_state.green_ribbon_data = {
+                "cafes": sample_cafes,
+                "total_participants": total_participants,
+                "total_stamps": total_stamps,
+                "total_esg_products": total_esg_products,
+                "total_purchases": total_purchases,
+                "esg_purchase_rate": esg_purchase_rate,
+                "participation_rate": np.random.randint(75, 90)
+            }
+            st.success("샘플 데이터로 초기화되었습니다!")
+            st.rerun()
+    
+    with col2:
+        if st.button("📈 통계 새로고침", width='stretch'):
+            st.info("통계 데이터를 새로고침했습니다!")
+    
+    with col3:
+        if st.button("📋 인증 리포트", width='stretch'):
+            st.info("그린리본 인증 리포트를 생성했습니다!")
 
 # 임직원 아이디어 페이지
 elif menu == "임직원 아이디어":
