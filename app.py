@@ -32,22 +32,78 @@ st.markdown("""
     .sidebar .sidebar-content {
         background-color: #1e3a8a;
     }
+    /* 사이드바 왼쪽 정렬 강화 */
+    .sidebar .sidebar-content .element-container {
+        text-align: left !important;
+    }
+    .sidebar .sidebar-content h1, 
+    .sidebar .sidebar-content h2, 
+    .sidebar .sidebar-content h3 {
+        text-align: left !important;
+    }
+    .sidebar .sidebar-content p {
+        text-align: left !important;
+    }
+    /* 모든 텍스트 요소 왼쪽 정렬 */
+    .sidebar * {
+        text-align: left !important;
+    }
+    .sidebar .stButton > button {
+        text-align: left !important;
+        justify-content: flex-start !important;
+    }
+    .sidebar .stMarkdown {
+        text-align: left !important;
+    }
+    .sidebar div {
+        text-align: left !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
 # 사이드바 네비게이션
 st.sidebar.markdown("""
-<div style="text-align: center; padding: 1rem;">
-    <h2 style="color: white; margin: 0;">🌱 삼성SDS ESG</h2>
-    <p style="color: #e0e0e0; margin: 0;">탄소관리 시스템</p>
+<div style="padding: 1rem; text-align: left;">
+    <h2 style="color: white; margin: 0; text-align: left !important;">🌱 삼성SDS ESG</h2>
+    <p style="color: #e0e0e0; margin: 0; text-align: left !important;">탄소관리 시스템</p>
 </div>
 """, unsafe_allow_html=True)
 
-# 메뉴 선택
-menu = st.sidebar.selectbox(
-    "메뉴 선택",
-    ["대시보드", "Scope 1 (직접 배출)", "Scope 2 (간접 배출)", "Scope 3 (밸류체인)", "순환경제", "임직원 아이디어"]
-)
+st.sidebar.markdown("---")
+
+# 메뉴 항목들
+st.sidebar.markdown("### 📊 메뉴")
+menu_options = [
+    "대시보드", 
+    "Scope 1 (직접 배출)", 
+    "Scope 2 (간접 배출)", 
+    "Scope 3 (밸류체인)", 
+    "순환경제", 
+    "계단 오르기",
+    "일회용품 ZERO 챌린지",
+    "임직원 아이디어"
+]
+
+# 각 메뉴 항목을 버튼으로 표시 (왼쪽 정렬)
+for i, option in enumerate(menu_options):
+    if st.sidebar.button(f"📋 {option}", key=f"menu_{i}", use_container_width=True):
+        st.session_state.selected_menu = option
+        st.rerun()
+
+# 기본 메뉴 선택
+if 'selected_menu' not in st.session_state:
+    st.session_state.selected_menu = "대시보드"
+
+menu = st.session_state.selected_menu
+
+# 현재 선택된 메뉴 표시
+st.sidebar.markdown(f"**현재 페이지:** {menu}")
+
+st.sidebar.markdown("---")
+st.sidebar.markdown("### 🚀 빠른 액세스")
+if st.sidebar.button("🏠 대시보드로 이동", use_container_width=True):
+    st.session_state.selected_menu = "대시보드"
+    st.rerun()
 
 # 샘플 데이터 로드
 @st.cache_data
@@ -289,7 +345,7 @@ elif menu == "Scope 3 (밸류체인)":
     fig = px.bar(x=categories, y=values, 
                 color=values, color_continuous_scale='Oranges')
     fig.update_layout(xaxis_title="카테고리", yaxis_title="배출량 (tCO2e)")
-    fig.update_xaxis(tickangle=45)
+    fig.update_xaxes(tickangle=45)
     st.plotly_chart(fig, use_container_width=True)
 
 # 순환경제 페이지
@@ -333,6 +389,426 @@ elif menu == "순환경제":
     fig = px.pie(values=values, names=methods, color_discrete_sequence=colors)
     fig.update_layout(height=400)
     st.plotly_chart(fig, use_container_width=True)
+
+# 계단 오르기 페이지
+elif menu == "계단 오르기":
+    st.title("🏢 계단 오르기 캠페인")
+    st.write("삼성SDS 5개 사옥에서 진행하는 친환경 계단 오르기 캠페인을 관리합니다.")
+
+    # 사옥 정보
+    buildings = {
+        "잠실": {
+            "name": "잠실 사옥",
+            "image": "🏢",
+            "participants": 0
+        },
+        "판교IT": {
+            "name": "판교 IT 사옥", 
+            "image": "🏢",
+            "participants": 0
+        },
+        "판교물류": {
+            "name": "판교 물류 사옥",
+            "image": "🏢", 
+            "participants": 0
+        },
+        "상암": {
+            "name": "상암 사옥",
+            "image": "🏢",
+            "participants": 0
+        },
+        "수원": {
+            "name": "수원 사옥",
+            "image": "🏢",
+            "participants": 0
+        }
+    }
+
+    # 세션 상태 초기화
+    if 'stair_climbing_data' not in st.session_state:
+        st.session_state.stair_climbing_data = buildings.copy()
+
+    st.markdown("---")
+
+    # 오늘 날짜 표시
+    today = datetime.now().strftime("%Y년 %m월 %d일")
+    st.subheader(f"📅 {today} 계단 오르기 현황")
+
+    # 사옥별 카드 레이아웃
+    cols = st.columns(5)
+    
+    for i, (building_key, building_info) in enumerate(st.session_state.stair_climbing_data.items()):
+        with cols[i]:
+            st.markdown(f"""
+            <div style="
+                border: 2px solid #e0e0e0;
+                border-radius: 10px;
+                padding: 20px;
+                text-align: center;
+                background-color: #f8f9fa;
+                margin-bottom: 10px;
+            ">
+                <h3 style="margin: 0; color: #1e3a8a;">{building_info['image']}</h3>
+                <h4 style="margin: 10px 0; color: #333;">{building_info['name']}</h4>
+                <p style="margin: 5px 0; font-size: 18px; font-weight: bold; color: #28a745;">
+                    참여자: {building_info['participants']}명
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # 등록 버튼
+            if st.button(f"등록하기", key=f"register_{building_key}", use_container_width=True):
+                st.session_state.stair_climbing_data[building_key]['participants'] += 1
+                st.success(f"{building_info['name']}에 계단 오르기 등록 완료!")
+                st.rerun()
+
+    st.markdown("---")
+
+    # 전체 통계
+    st.subheader("📊 전체 통계")
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    total_participants = sum(building['participants'] for building in st.session_state.stair_climbing_data.values())
+    
+    with col1:
+        st.metric(
+            label="총 참여자",
+            value=f"{total_participants}명",
+            delta=f"+{total_participants}명"
+        )
+    
+    with col2:
+        st.metric(
+            label="참여 사옥",
+            value="5개",
+            delta="100%"
+        )
+    
+    with col3:
+        st.metric(
+            label="평균 참여율",
+            value=f"{total_participants/5:.1f}명",
+            delta="사옥당"
+        )
+    
+    with col4:
+        st.metric(
+            label="탄소 절약",
+            value=f"{total_participants * 0.1:.1f}kg",
+            delta="CO2"
+        )
+
+    st.markdown("---")
+
+    # 사옥별 참여 현황 차트
+    st.subheader("🏢 사옥별 참여 현황")
+    
+    building_names = list(st.session_state.stair_climbing_data.keys())
+    participants_count = [building['participants'] for building in st.session_state.stair_climbing_data.values()]
+    
+    fig_stairs = px.bar(
+        x=building_names,
+        y=participants_count,
+        title='사옥별 계단 오르기 참여자 수',
+        labels={'x': '사옥', 'y': '참여자 수'},
+        color=participants_count,
+        color_continuous_scale='Greens'
+    )
+    fig_stairs.update_layout(
+        xaxis_title="사옥",
+        yaxis_title="참여자 수 (명)"
+    )
+    st.plotly_chart(fig_stairs, use_container_width=True)
+
+    st.markdown("---")
+
+    # 리셋 버튼
+    st.subheader("🔄 데이터 관리")
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if st.button("📊 데이터 초기화", use_container_width=True):
+            st.session_state.stair_climbing_data = buildings.copy()
+            st.success("모든 데이터가 초기화되었습니다!")
+            st.rerun()
+    
+    with col2:
+        if st.button("📈 통계 보기", use_container_width=True):
+            st.info("통계 데이터를 새로고침했습니다!")
+
+# 일회용품 ZERO 챌린지 페이지
+elif menu == "일회용품 ZERO 챌린지":
+    st.title("♻️ 일회용품 ZERO 챌린지")
+    st.write("제로컵 위크 캠페인을 통해 개인 컵, 텀블러, 도시락 사용을 장려합니다.")
+
+    # 챌린지 정보
+    challenge_info = {
+        "name": "제로컵 위크",
+        "description": "일회용 컵·용기 사용을 줄이고 개인 컵, 텀블러, 도시락 사용을 장려하는 캠페인",
+        "duration": "2024년 10월 20일 ~ 10월 27일",
+        "goal": "일회용품 사용률 50% 감소"
+    }
+
+    # 세션 상태 초기화
+    if 'zero_challenge_data' not in st.session_state:
+        st.session_state.zero_challenge_data = {
+            "participants": 0,
+            "personal_cups": 0,
+            "tumblers": 0,
+            "lunchboxes": 0,
+            "single_use_reduction": 0,
+            "daily_registrations": []
+        }
+
+    st.markdown("---")
+
+    # 챌린지 정보 카드
+    st.subheader("📋 챌린지 정보")
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.info(f"""
+        **🎯 챌린지명**: {challenge_info['name']}
+        
+        **📅 기간**: {challenge_info['duration']}
+        
+        **🎯 목표**: {challenge_info['goal']}
+        """)
+    
+    with col2:
+        st.success(f"""
+        **📝 설명**: {challenge_info['description']}
+        
+        **🌱 환경효과**: 일회용품 사용 감소로 탄소발자국 줄이기
+        """)
+
+    st.markdown("---")
+
+    # 참여 등록 섹션
+    st.subheader("🎮 참여 등록")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.markdown("""
+        <div style="
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            background-color: #f8f9fa;
+            margin-bottom: 10px;
+        ">
+            <h3 style="margin: 0; color: #1e3a8a;">☕</h3>
+            <h4 style="margin: 10px 0; color: #333;">개인 컵 사용</h4>
+            <p style="margin: 5px 0; font-size: 16px; color: #28a745;">
+                참여자: {personal_cups}명
+            </p>
+        </div>
+        """.format(personal_cups=st.session_state.zero_challenge_data['personal_cups']), unsafe_allow_html=True)
+        
+        if st.button("개인 컵 등록", key="personal_cup", use_container_width=True):
+            st.session_state.zero_challenge_data['personal_cups'] += 1
+            st.session_state.zero_challenge_data['participants'] += 1
+            st.session_state.zero_challenge_data['single_use_reduction'] += 1
+            st.session_state.zero_challenge_data['daily_registrations'].append({
+                'type': '개인 컵',
+                'timestamp': datetime.now().strftime("%H:%M"),
+                'date': datetime.now().strftime("%Y-%m-%d")
+            })
+            st.success("개인 컵 사용 등록 완료! 🌱")
+            st.rerun()
+    
+    with col2:
+        st.markdown("""
+        <div style="
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            background-color: #f8f9fa;
+            margin-bottom: 10px;
+        ">
+            <h3 style="margin: 0; color: #1e3a8a;">🍵</h3>
+            <h4 style="margin: 10px 0; color: #333;">텀블러 사용</h4>
+            <p style="margin: 5px 0; font-size: 16px; color: #28a745;">
+                참여자: {tumblers}명
+            </p>
+        </div>
+        """.format(tumblers=st.session_state.zero_challenge_data['tumblers']), unsafe_allow_html=True)
+        
+        if st.button("텀블러 등록", key="tumbler", use_container_width=True):
+            st.session_state.zero_challenge_data['tumblers'] += 1
+            st.session_state.zero_challenge_data['participants'] += 1
+            st.session_state.zero_challenge_data['single_use_reduction'] += 1
+            st.session_state.zero_challenge_data['daily_registrations'].append({
+                'type': '텀블러',
+                'timestamp': datetime.now().strftime("%H:%M"),
+                'date': datetime.now().strftime("%Y-%m-%d")
+            })
+            st.success("텀블러 사용 등록 완료! 🌱")
+            st.rerun()
+    
+    with col3:
+        st.markdown("""
+        <div style="
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            background-color: #f8f9fa;
+            margin-bottom: 10px;
+        ">
+            <h3 style="margin: 0; color: #1e3a8a;">🍱</h3>
+            <h4 style="margin: 10px 0; color: #333;">도시락 사용</h4>
+            <p style="margin: 5px 0; font-size: 16px; color: #28a745;">
+                참여자: {lunchboxes}명
+            </p>
+        </div>
+        """.format(lunchboxes=st.session_state.zero_challenge_data['lunchboxes']), unsafe_allow_html=True)
+        
+        if st.button("도시락 등록", key="lunchbox", use_container_width=True):
+            st.session_state.zero_challenge_data['lunchboxes'] += 1
+            st.session_state.zero_challenge_data['participants'] += 1
+            st.session_state.zero_challenge_data['single_use_reduction'] += 2  # 도시락은 용기 2개 절약
+            st.session_state.zero_challenge_data['daily_registrations'].append({
+                'type': '도시락',
+                'timestamp': datetime.now().strftime("%H:%M"),
+                'date': datetime.now().strftime("%Y-%m-%d")
+            })
+            st.success("도시락 사용 등록 완료! 🌱")
+            st.rerun()
+
+    st.markdown("---")
+
+    # 실시간 통계
+    st.subheader("📊 실시간 통계")
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.metric(
+            label="총 참여자",
+            value=f"{st.session_state.zero_challenge_data['participants']}명",
+            delta=f"+{st.session_state.zero_challenge_data['participants']}명"
+        )
+    
+    with col2:
+        st.metric(
+            label="일회용품 감소",
+            value=f"{st.session_state.zero_challenge_data['single_use_reduction']}개",
+            delta=f"-{st.session_state.zero_challenge_data['single_use_reduction']}개"
+        )
+    
+    with col3:
+        st.metric(
+            label="감소율",
+            value=f"{(st.session_state.zero_challenge_data['single_use_reduction']/max(st.session_state.zero_challenge_data['participants'], 1)*100):.1f}%",
+            delta="목표 대비"
+        )
+    
+    with col4:
+        st.metric(
+            label="탄소 절약",
+            value=f"{st.session_state.zero_challenge_data['single_use_reduction'] * 0.05:.2f}kg",
+            delta="CO2"
+        )
+
+    st.markdown("---")
+
+    # 사용 유형별 현황 차트
+    st.subheader("📈 사용 유형별 현황")
+    
+    usage_types = ['개인 컵', '텀블러', '도시락']
+    usage_counts = [
+        st.session_state.zero_challenge_data['personal_cups'],
+        st.session_state.zero_challenge_data['tumblers'],
+        st.session_state.zero_challenge_data['lunchboxes']
+    ]
+    
+    fig_usage = px.pie(
+        values=usage_counts,
+        names=usage_types,
+        title='친환경 용기 사용 유형별 비율',
+        color_discrete_sequence=['#82ca9d', '#8884d8', '#ffc658']
+    )
+    fig_usage.update_layout(height=400)
+    st.plotly_chart(fig_usage, use_container_width=True)
+
+    st.markdown("---")
+
+    # 시간대별 등록 현황
+    st.subheader("⏰ 시간대별 등록 현황")
+    
+    if st.session_state.zero_challenge_data['daily_registrations']:
+        # 오늘 등록된 데이터만 필터링
+        today_registrations = [
+            reg for reg in st.session_state.zero_challenge_data['daily_registrations']
+            if reg['date'] == datetime.now().strftime("%Y-%m-%d")
+        ]
+        
+        if today_registrations:
+            # 시간대별 집계
+            hourly_data = {}
+            for reg in today_registrations:
+                hour = reg['timestamp'].split(':')[0]
+                if hour not in hourly_data:
+                    hourly_data[hour] = 0
+                hourly_data[hour] += 1
+            
+            hours = list(hourly_data.keys())
+            counts = list(hourly_data.values())
+            
+            fig_hourly = px.bar(
+                x=hours,
+                y=counts,
+                title='오늘 시간대별 등록 현황',
+                labels={'x': '시간', 'y': '등록 수'},
+                color=counts,
+                color_continuous_scale='Blues'
+            )
+            fig_hourly.update_layout(
+                xaxis_title="시간 (시)",
+                yaxis_title="등록 수"
+            )
+            st.plotly_chart(fig_hourly, use_container_width=True)
+        else:
+            st.info("오늘 아직 등록된 데이터가 없습니다.")
+    else:
+        st.info("등록된 데이터가 없습니다.")
+
+    st.markdown("---")
+
+    # 데이터 관리
+    st.subheader("🔄 데이터 관리")
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        if st.button("📊 데이터 초기화", use_container_width=True):
+            st.session_state.zero_challenge_data = {
+                "participants": 0,
+                "personal_cups": 0,
+                "tumblers": 0,
+                "lunchboxes": 0,
+                "single_use_reduction": 0,
+                "daily_registrations": []
+            }
+            st.success("모든 데이터가 초기화되었습니다!")
+            st.rerun()
+    
+    with col2:
+        if st.button("📈 통계 새로고침", use_container_width=True):
+            st.info("통계 데이터를 새로고침했습니다!")
+    
+    with col3:
+        if st.button("📋 등록 내역 보기", use_container_width=True):
+            if st.session_state.zero_challenge_data['daily_registrations']:
+                st.write("**최근 등록 내역:**")
+                for reg in st.session_state.zero_challenge_data['daily_registrations'][-10:]:
+                    st.write(f"- {reg['type']}: {reg['date']} {reg['timestamp']}")
+            else:
+                st.info("등록된 내역이 없습니다.")
 
 # 임직원 아이디어 페이지
 elif menu == "임직원 아이디어":
