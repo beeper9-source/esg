@@ -955,7 +955,51 @@ elif menu == "페이퍼리스 데이":
 # 소등·절전 챌린지 페이지
 elif menu == "소등·절전 챌린지":
     st.title("💡 소등·절전 챌린지")
-    st.write("퇴근 후 불필요한 조명·모니터 끄기와 점심시간 조명 절반 소등을 통해 전력 사용량을 줄입니다.")
+    st.write("삼성SDS 5개 사옥에서 퇴근 후 불필요한 조명·모니터 끄기와 점심시간 조명 절반 소등을 통해 전력 사용량을 줄입니다.")
+
+    # 사옥 정보
+    buildings = {
+        "잠실": {
+            "name": "잠실 사옥",
+            "image": "🏢",
+            "participants": 0,
+            "power_saved": 0,
+            "lights_off_rate": 0,
+            "monitors_off_rate": 0
+        },
+        "판교IT": {
+            "name": "판교 IT 사옥", 
+            "image": "🏢",
+            "participants": 0,
+            "power_saved": 0,
+            "lights_off_rate": 0,
+            "monitors_off_rate": 0
+        },
+        "판교물류": {
+            "name": "판교 물류 사옥",
+            "image": "🏢", 
+            "participants": 0,
+            "power_saved": 0,
+            "lights_off_rate": 0,
+            "monitors_off_rate": 0
+        },
+        "상암": {
+            "name": "상암 사옥",
+            "image": "🏢",
+            "participants": 0,
+            "power_saved": 0,
+            "lights_off_rate": 0,
+            "monitors_off_rate": 0
+        },
+        "수원": {
+            "name": "수원 사옥",
+            "image": "🏢",
+            "participants": 0,
+            "power_saved": 0,
+            "lights_off_rate": 0,
+            "monitors_off_rate": 0
+        }
+    }
 
     # 소등·절전 챌린지 정보
     power_saving_info = {
@@ -968,63 +1012,61 @@ elif menu == "소등·절전 챌린지":
     # 세션 상태 초기화 (샘플 데이터 포함)
     if 'power_saving_data' not in st.session_state:
         # 샘플 데이터 생성
-        base_monthly_power = np.random.randint(8000, 12000)  # 기본 월 전력 사용량 (kWh)
-        base_electricity_bill = base_monthly_power * 120  # 기본 전기요금 (원, kWh당 120원)
-        
-        # 절전 효과 (20% 감소)
-        saved_power = int(base_monthly_power * 0.2)
-        saved_bill = int(base_electricity_bill * 0.2)
-        
-        # 일별 데이터 생성 (최근 30일)
-        daily_data = []
-        for i in range(30):
-            day = (datetime.now() - timedelta(days=29-i)).strftime("%m/%d")
-            weekday = (datetime.now() - timedelta(days=29-i)).weekday()
-            
-            # 평일과 주말 구분
-            if weekday < 5:  # 평일
-                base_daily_power = np.random.randint(250, 350)
-                # 절전 효과 적용 (퇴근 후, 점심시간)
-                power_saved = np.random.randint(40, 80)
-                daily_power = base_daily_power - power_saved
-            else:  # 주말
-                base_daily_power = np.random.randint(100, 150)
-                power_saved = np.random.randint(20, 40)
-                daily_power = base_daily_power - power_saved
-            
-            daily_data.append({
-                'date': day,
-                'power_usage': daily_power,
-                'power_saved': power_saved,
-                'is_weekday': weekday < 5,
-                'lights_off': np.random.randint(80, 95),  # 조명 소등률
-                'monitors_off': np.random.randint(70, 90),  # 모니터 소등률
-                'lunch_saving': np.random.randint(60, 80)  # 점심시간 절전률
-            })
-        
-        # 월별 비교 데이터
-        monthly_comparison = {
-            'previous_month': {
-                'power_usage': base_monthly_power,
-                'electricity_bill': base_electricity_bill,
-                'lights_off_rate': np.random.randint(40, 60),
-                'monitors_off_rate': np.random.randint(30, 50)
+        sample_buildings = {
+            "잠실": {
+                "name": "잠실 사옥",
+                "image": "🏢",
+                "participants": np.random.randint(25, 45),
+                "power_saved": np.random.randint(150, 250),  # kWh
+                "lights_off_rate": np.random.randint(80, 95),
+                "monitors_off_rate": np.random.randint(70, 90)
             },
-            'current_month': {
-                'power_usage': base_monthly_power - saved_power,
-                'electricity_bill': base_electricity_bill - saved_bill,
-                'lights_off_rate': np.random.randint(80, 95),
-                'monitors_off_rate': np.random.randint(70, 90)
+            "판교IT": {
+                "name": "판교 IT 사옥", 
+                "image": "🏢",
+                "participants": np.random.randint(30, 50),
+                "power_saved": np.random.randint(180, 280),
+                "lights_off_rate": np.random.randint(85, 95),
+                "monitors_off_rate": np.random.randint(75, 90)
+            },
+            "판교물류": {
+                "name": "판교 물류 사옥",
+                "image": "🏢", 
+                "participants": np.random.randint(20, 35),
+                "power_saved": np.random.randint(120, 200),
+                "lights_off_rate": np.random.randint(75, 90),
+                "monitors_off_rate": np.random.randint(65, 85)
+            },
+            "상암": {
+                "name": "상암 사옥",
+                "image": "🏢",
+                "participants": np.random.randint(22, 40),
+                "power_saved": np.random.randint(140, 220),
+                "lights_off_rate": np.random.randint(80, 95),
+                "monitors_off_rate": np.random.randint(70, 90)
+            },
+            "수원": {
+                "name": "수원 사옥",
+                "image": "🏢",
+                "participants": np.random.randint(18, 30),
+                "power_saved": np.random.randint(100, 180),
+                "lights_off_rate": np.random.randint(75, 90),
+                "monitors_off_rate": np.random.randint(65, 85)
             }
         }
         
+        # 전체 통계 계산
+        total_participants = sum(building['participants'] for building in sample_buildings.values())
+        total_power_saved = sum(building['power_saved'] for building in sample_buildings.values())
+        total_bill_saved = total_power_saved * 120  # kWh당 120원
+        
         st.session_state.power_saving_data = {
-            "daily_data": daily_data,
-            "monthly_comparison": monthly_comparison,
-            "total_power_saved": saved_power,
-            "total_bill_saved": saved_bill,
+            "buildings": sample_buildings,
+            "total_participants": total_participants,
+            "total_power_saved": total_power_saved,
+            "total_bill_saved": total_bill_saved,
             "participation_rate": np.random.randint(85, 95),
-            "average_daily_saving": saved_power // 30
+            "average_daily_saving": total_power_saved // 30
         }
 
     st.markdown("---")
@@ -1053,189 +1095,129 @@ elif menu == "소등·절전 챌린지":
 
     st.markdown("---")
 
-    # 월별 절약 현황
-    st.subheader("📊 월별 절약 현황")
+    # 오늘 날짜 표시
+    today = datetime.now().strftime("%Y년 %m월 %d일")
+    st.subheader(f"📅 {today} 소등·절전 챌린지 현황")
+
+    # 사옥별 카드 레이아웃
+    cols = st.columns(5)
+    
+    for i, (building_key, building_info) in enumerate(st.session_state.power_saving_data['buildings'].items()):
+        with cols[i]:
+            st.markdown(f"""
+            <div style="
+                border: 2px solid #e0e0e0;
+                border-radius: 10px;
+                padding: 20px;
+                text-align: center;
+                background-color: #f8f9fa;
+                margin-bottom: 10px;
+            ">
+                <h3 style="margin: 0; color: #1e3a8a;">{building_info['image']}</h3>
+                <h4 style="margin: 10px 0; color: #333;">{building_info['name']}</h4>
+                <p style="margin: 5px 0; font-size: 16px; font-weight: bold; color: #28a745;">
+                    참여자: {building_info['participants']}명
+                </p>
+                <p style="margin: 5px 0; font-size: 14px; color: #007bff;">
+                    절약량: {building_info['power_saved']}kWh
+                </p>
+                <p style="margin: 5px 0; font-size: 12px; color: #6c757d;">
+                    조명소등: {building_info['lights_off_rate']}%
+                </p>
+                <p style="margin: 5px 0; font-size: 12px; color: #6c757d;">
+                    모니터소등: {building_info['monitors_off_rate']}%
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # 등록 버튼
+            if st.button(f"절전 등록", key=f"power_register_{building_key}", use_container_width=True):
+                st.session_state.power_saving_data['buildings'][building_key]['participants'] += 1
+                additional_power = np.random.randint(5, 15)
+                st.session_state.power_saving_data['buildings'][building_key]['power_saved'] += additional_power
+                st.session_state.power_saving_data['total_participants'] += 1
+                st.session_state.power_saving_data['total_power_saved'] += additional_power
+                st.session_state.power_saving_data['total_bill_saved'] += additional_power * 120
+                st.success(f"{building_info['name']}에 절전 등록 완료! 💡")
+                st.rerun()
+
+    st.markdown("---")
+
+    # 전체 통계
+    st.subheader("📊 전체 통계")
     
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
         st.metric(
-            label="전력 절약량",
-            value=f"{st.session_state.power_saving_data['total_power_saved']}kWh",
-            delta=f"-{st.session_state.power_saving_data['total_power_saved']}kWh"
+            label="총 참여자",
+            value=f"{st.session_state.power_saving_data['total_participants']}명",
+            delta=f"+{np.random.randint(5, 15)}명"
         )
     
     with col2:
         st.metric(
-            label="전기요금 절약",
-            value=f"{st.session_state.power_saving_data['total_bill_saved']:,}원",
-            delta=f"-{st.session_state.power_saving_data['total_bill_saved']:,}원"
+            label="총 전력 절약",
+            value=f"{st.session_state.power_saving_data['total_power_saved']}kWh",
+            delta=f"+{np.random.randint(20, 50)}kWh"
         )
     
     with col3:
         st.metric(
-            label="참여율",
-            value=f"{st.session_state.power_saving_data['participation_rate']}%",
-            delta=f"+{np.random.randint(5, 15)}%"
+            label="전기요금 절약",
+            value=f"{st.session_state.power_saving_data['total_bill_saved']:,}원",
+            delta=f"+{np.random.randint(2000, 6000):,}원"
         )
     
     with col4:
         st.metric(
-            label="일평균 절약",
-            value=f"{st.session_state.power_saving_data['average_daily_saving']}kWh",
-            delta="일일 평균"
+            label="참여율",
+            value=f"{st.session_state.power_saving_data['participation_rate']}%",
+            delta=f"+{np.random.randint(3, 8)}%"
         )
 
     st.markdown("---")
 
-    # 월별 전력 사용량 비교
-    st.subheader("📈 월별 전력 사용량 비교")
+    # 사옥별 전력 절약 현황 차트
+    st.subheader("🏢 사옥별 전력 절약 현황")
     
-    comparison_data = st.session_state.power_saving_data['monthly_comparison']
+    building_names = list(st.session_state.power_saving_data['buildings'].keys())
+    power_saved_amounts = [building['power_saved'] for building in st.session_state.power_saving_data['buildings'].values()]
     
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("**이전 달**")
-        st.metric("전력 사용량", f"{comparison_data['previous_month']['power_usage']:,}kWh")
-        st.metric("전기요금", f"{comparison_data['previous_month']['electricity_bill']:,}원")
-        st.metric("조명 소등률", f"{comparison_data['previous_month']['lights_off_rate']}%")
-        st.metric("모니터 소등률", f"{comparison_data['previous_month']['monitors_off_rate']}%")
-    
-    with col2:
-        st.markdown("**이번 달**")
-        st.metric("전력 사용량", f"{comparison_data['current_month']['power_usage']:,}kWh")
-        st.metric("전기요금", f"{comparison_data['current_month']['electricity_bill']:,}원")
-        st.metric("조명 소등률", f"{comparison_data['current_month']['lights_off_rate']}%")
-        st.metric("모니터 소등률", f"{comparison_data['current_month']['monitors_off_rate']}%")
-
-    st.markdown("---")
-
-    # 일별 전력 사용량 추이
-    st.subheader("📅 일별 전력 사용량 추이")
-    
-    daily_df = pd.DataFrame(st.session_state.power_saving_data['daily_data'])
-    
-    fig_daily = px.line(
-        daily_df,
-        x='date',
-        y='power_usage',
-        title='일별 전력 사용량 추이',
-        markers=True,
-        labels={'power_usage': '전력 사용량 (kWh)', 'date': '날짜'},
-        color_discrete_sequence=['#28a745']
-    )
-    fig_daily.update_layout(
-        xaxis_title="날짜",
-        yaxis_title="전력 사용량 (kWh)",
-        xaxis_tickangle=45
-    )
-    st.plotly_chart(fig_daily, use_container_width=True)
-
-    st.markdown("---")
-
-    # 절전 활동별 효과
-    st.subheader("💡 절전 활동별 효과")
-    
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        st.markdown("""
-        <div style="
-            border: 2px solid #ffc107;
-            border-radius: 10px;
-            padding: 20px;
-            text-align: center;
-            background-color: #fff3cd;
-            margin-bottom: 10px;
-        ">
-            <h3 style="margin: 0; color: #856404;">💡</h3>
-            <h4 style="margin: 10px 0; color: #856404;">퇴근 후 조명 소등</h4>
-            <p style="margin: 5px 0; font-size: 16px; color: #856404;">
-                소등률: {lights_off}%
-            </p>
-            <p style="margin: 5px 0; font-size: 16px; color: #856404;">
-                절약량: {lights_saving}kWh
-            </p>
-        </div>
-        """.format(
-            lights_off=np.random.randint(80, 95),
-            lights_saving=np.random.randint(200, 300)
-        ), unsafe_allow_html=True)
-    
-    with col2:
-        st.markdown("""
-        <div style="
-            border: 2px solid #17a2b8;
-            border-radius: 10px;
-            padding: 20px;
-            text-align: center;
-            background-color: #d1ecf1;
-            margin-bottom: 10px;
-        ">
-            <h3 style="margin: 0; color: #0c5460;">🖥️</h3>
-            <h4 style="margin: 10px 0; color: #0c5460;">모니터 자동 소등</h4>
-            <p style="margin: 5px 0; font-size: 16px; color: #0c5460;">
-                소등률: {monitors_off}%
-            </p>
-            <p style="margin: 5px 0; font-size: 16px; color: #0c5460;">
-                절약량: {monitors_saving}kWh
-            </p>
-        </div>
-        """.format(
-            monitors_off=np.random.randint(70, 90),
-            monitors_saving=np.random.randint(150, 250)
-        ), unsafe_allow_html=True)
-    
-    with col3:
-        st.markdown("""
-        <div style="
-            border: 2px solid #6f42c1;
-            border-radius: 10px;
-            padding: 20px;
-            text-align: center;
-            background-color: #e2d9f3;
-            margin-bottom: 10px;
-        ">
-            <h3 style="margin: 0; color: #4a2c7a;">🍽️</h3>
-            <h4 style="margin: 10px 0; color: #4a2c7a;">점심시간 절전</h4>
-            <p style="margin: 5px 0; font-size: 16px; color: #4a2c7a;">
-                절전률: {lunch_saving}%
-            </p>
-            <p style="margin: 5px 0; font-size: 16px; color: #4a2c7a;">
-                절약량: {lunch_power_saving}kWh
-            </p>
-        </div>
-        """.format(
-            lunch_saving=np.random.randint(60, 80),
-            lunch_power_saving=np.random.randint(100, 200)
-        ), unsafe_allow_html=True)
-
-    st.markdown("---")
-
-    # 절전 활동별 효과 차트
-    st.subheader("📊 절전 활동별 효과")
-    
-    activities = ['퇴근 후 조명 소등', '모니터 자동 소등', '점심시간 절전']
-    savings = [
-        np.random.randint(200, 300),
-        np.random.randint(150, 250),
-        np.random.randint(100, 200)
-    ]
-    
-    fig_activities = px.bar(
-        x=activities,
-        y=savings,
-        title='절전 활동별 월간 절약량',
-        labels={'x': '절전 활동', 'y': '절약량 (kWh)'},
-        color=savings,
+    fig_power = px.bar(
+        x=building_names,
+        y=power_saved_amounts,
+        title='사옥별 전력 절약량',
+        labels={'x': '사옥', 'y': '절약량 (kWh)'},
+        color=power_saved_amounts,
         color_continuous_scale='Greens'
     )
-    fig_activities.update_layout(
-        xaxis_title="절전 활동",
+    fig_power.update_layout(
+        xaxis_title="사옥",
         yaxis_title="절약량 (kWh)"
     )
-    st.plotly_chart(fig_activities, use_container_width=True)
+    st.plotly_chart(fig_power, use_container_width=True)
+
+    st.markdown("---")
+
+    # 사옥별 참여자 수 차트
+    st.subheader("👥 사옥별 참여자 수")
+    
+    participants_counts = [building['participants'] for building in st.session_state.power_saving_data['buildings'].values()]
+    
+    fig_participants = px.bar(
+        x=building_names,
+        y=participants_counts,
+        title='사옥별 참여자 수',
+        labels={'x': '사옥', 'y': '참여자 수'},
+        color=participants_counts,
+        color_continuous_scale='Blues'
+    )
+    fig_participants.update_layout(
+        xaxis_title="사옥",
+        yaxis_title="참여자 수"
+    )
+    st.plotly_chart(fig_participants, use_container_width=True)
 
     st.markdown("---")
 
@@ -1276,57 +1258,61 @@ elif menu == "소등·절전 챌린지":
     with col1:
         if st.button("📊 데이터 초기화", width='stretch'):
             # 새로운 샘플 데이터 생성
-            base_monthly_power = np.random.randint(8000, 12000)
-            base_electricity_bill = base_monthly_power * 120
-            saved_power = int(base_monthly_power * 0.2)
-            saved_bill = int(base_electricity_bill * 0.2)
-            
-            daily_data = []
-            for i in range(30):
-                day = (datetime.now() - timedelta(days=29-i)).strftime("%m/%d")
-                weekday = (datetime.now() - timedelta(days=29-i)).weekday()
-                
-                if weekday < 5:
-                    base_daily_power = np.random.randint(250, 350)
-                    power_saved = np.random.randint(40, 80)
-                    daily_power = base_daily_power - power_saved
-                else:
-                    base_daily_power = np.random.randint(100, 150)
-                    power_saved = np.random.randint(20, 40)
-                    daily_power = base_daily_power - power_saved
-                
-                daily_data.append({
-                    'date': day,
-                    'power_usage': daily_power,
-                    'power_saved': power_saved,
-                    'is_weekday': weekday < 5,
-                    'lights_off': np.random.randint(80, 95),
-                    'monitors_off': np.random.randint(70, 90),
-                    'lunch_saving': np.random.randint(60, 80)
-                })
-            
-            monthly_comparison = {
-                'previous_month': {
-                    'power_usage': base_monthly_power,
-                    'electricity_bill': base_electricity_bill,
-                    'lights_off_rate': np.random.randint(40, 60),
-                    'monitors_off_rate': np.random.randint(30, 50)
+            sample_buildings = {
+                "잠실": {
+                    "name": "잠실 사옥",
+                    "image": "🏢",
+                    "participants": np.random.randint(25, 45),
+                    "power_saved": np.random.randint(150, 250),
+                    "lights_off_rate": np.random.randint(80, 95),
+                    "monitors_off_rate": np.random.randint(70, 90)
                 },
-                'current_month': {
-                    'power_usage': base_monthly_power - saved_power,
-                    'electricity_bill': base_electricity_bill - saved_bill,
-                    'lights_off_rate': np.random.randint(80, 95),
-                    'monitors_off_rate': np.random.randint(70, 90)
+                "판교IT": {
+                    "name": "판교 IT 사옥", 
+                    "image": "🏢",
+                    "participants": np.random.randint(30, 50),
+                    "power_saved": np.random.randint(180, 280),
+                    "lights_off_rate": np.random.randint(85, 95),
+                    "monitors_off_rate": np.random.randint(75, 90)
+                },
+                "판교물류": {
+                    "name": "판교 물류 사옥",
+                    "image": "🏢", 
+                    "participants": np.random.randint(20, 35),
+                    "power_saved": np.random.randint(120, 200),
+                    "lights_off_rate": np.random.randint(75, 90),
+                    "monitors_off_rate": np.random.randint(65, 85)
+                },
+                "상암": {
+                    "name": "상암 사옥",
+                    "image": "🏢",
+                    "participants": np.random.randint(22, 40),
+                    "power_saved": np.random.randint(140, 220),
+                    "lights_off_rate": np.random.randint(80, 95),
+                    "monitors_off_rate": np.random.randint(70, 90)
+                },
+                "수원": {
+                    "name": "수원 사옥",
+                    "image": "🏢",
+                    "participants": np.random.randint(18, 30),
+                    "power_saved": np.random.randint(100, 180),
+                    "lights_off_rate": np.random.randint(75, 90),
+                    "monitors_off_rate": np.random.randint(65, 85)
                 }
             }
             
+            # 전체 통계 재계산
+            total_participants = sum(building['participants'] for building in sample_buildings.values())
+            total_power_saved = sum(building['power_saved'] for building in sample_buildings.values())
+            total_bill_saved = total_power_saved * 120
+            
             st.session_state.power_saving_data = {
-                "daily_data": daily_data,
-                "monthly_comparison": monthly_comparison,
-                "total_power_saved": saved_power,
-                "total_bill_saved": saved_bill,
+                "buildings": sample_buildings,
+                "total_participants": total_participants,
+                "total_power_saved": total_power_saved,
+                "total_bill_saved": total_bill_saved,
                 "participation_rate": np.random.randint(85, 95),
-                "average_daily_saving": saved_power // 30
+                "average_daily_saving": total_power_saved // 30
             }
             st.success("샘플 데이터로 초기화되었습니다!")
             st.rerun()
