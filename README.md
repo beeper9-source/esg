@@ -2,6 +2,22 @@
 
 삼성SDS의 디지털 역량과 임직원 아이디어를 결합한 탄소감축 및 순환경제 관리 앱입니다.
 
+## 🚀 배포 방법
+
+### Streamlit Cloud 배포 (권장)
+1. **https://share.streamlit.io** 접속
+2. GitHub 계정으로 로그인
+3. **New app** 클릭
+4. 저장소: `beeper9-source/esg` 선택
+5. **Main file path**: `app.py`
+6. **Deploy!** 클릭
+
+### 로컬 실행
+```bash
+pip install -r requirements.txt
+streamlit run app.py
+```
+
 ## 주요 기능
 
 ### 1. Scope 1 - 직접 배출량 관리
@@ -31,44 +47,36 @@
 
 ## 기술 스택
 
-- **Frontend**: React 18, TypeScript
-- **UI Framework**: Material-UI (MUI)
-- **Charts**: Recharts
-- **Routing**: React Router DOM
-- **State Management**: React Hooks
+- **Backend**: Python 3.8+
+- **Web Framework**: Streamlit
+- **Data Processing**: Pandas, NumPy
+- **Visualization**: Plotly
+- **Deployment**: Streamlit Cloud
 
 ## 설치 및 실행
 
 ### 1. 의존성 설치
 ```bash
-npm install
+pip install -r requirements.txt
 ```
 
-### 2. 개발 서버 실행
+### 2. 앱 실행
 ```bash
-npm start
+streamlit run app.py
 ```
 
-### 3. 프로덕션 빌드
-```bash
-npm run build
-```
+### 3. 브라우저에서 확인
+- 자동으로 브라우저가 열림
+- `http://localhost:8501`에서 앱 확인
 
 ## 프로젝트 구조
 
 ```
-src/
-├── components/          # 재사용 가능한 컴포넌트
-│   └── Navigation.tsx  # 네비게이션 컴포넌트
-├── pages/              # 페이지 컴포넌트
-│   ├── Dashboard.tsx   # 대시보드
-│   ├── Scope1.tsx      # Scope 1 관리
-│   ├── Scope2.tsx      # Scope 2 관리
-│   ├── Scope3.tsx      # Scope 3 관리
-│   ├── CircularEconomy.tsx # 순환경제 관리
-│   └── Ideas.tsx       # 임직원 아이디어
-├── App.tsx             # 메인 앱 컴포넌트
-└── index.tsx           # 앱 진입점
+esg/
+├── app.py                 # Streamlit 메인 앱
+├── requirements.txt       # Python 의존성
+├── README.md             # 프로젝트 설명
+└── STREAMLIT_DEPLOYMENT.md # 배포 가이드
 ```
 
 ## 주요 특징
