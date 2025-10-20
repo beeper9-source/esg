@@ -81,6 +81,8 @@ menu_options = [
     "순환경제", 
     "계단 오르기",
     "일회용품 ZERO 챌린지",
+    "페이퍼리스 데이",
+    "소등·절전 챌린지",
     "임직원 아이디어"
 ]
 
@@ -903,6 +905,699 @@ elif menu == "일회용품 ZERO 챌린지":
                     st.write(f"- {reg['type']}: {reg['date']} {reg['timestamp']}")
             else:
                 st.info("등록된 내역이 없습니다.")
+
+# 페이퍼리스 데이 페이지
+elif menu == "페이퍼리스 데이":
+    st.title("📄 페이퍼리스 데이")
+    st.write("매주 특정 요일에 종이 없는 업무일을 지정하여 디지털 업무 환경을 구축합니다.")
+
+    # 페이퍼리스 데이 정보
+    paperless_info = {
+        "name": "페이퍼리스 데이",
+        "description": "매주 수요일을 종이 없는 업무일로 지정하여 전자결재, PDF 회의, 디지털 메모 사용을 장려",
+        "target_day": "매주 수요일",
+        "goal": "인쇄 건수 30% 감소, 종이 구매량 25% 감소"
+    }
+
+    # 세션 상태 초기화 (샘플 데이터 포함)
+    if 'paperless_data' not in st.session_state:
+        # 샘플 데이터 생성
+        base_prints = np.random.randint(200, 400)  # 기본 인쇄 건수
+        base_paper_purchase = np.random.randint(50, 100)  # 기본 종이 구매량 (리터)
+        
+        # 페이퍼리스 데이 효과 (30% 감소)
+        paperless_day_prints = int(base_prints * 0.7)
+        paperless_day_paper = int(base_paper_purchase * 0.75)
+        
+        # 주간 데이터 생성
+        weekly_data = []
+        days = ['월', '화', '수', '목', '금']
+        for i, day in enumerate(days):
+            if day == '수':  # 수요일은 페이퍼리스 데이
+                weekly_data.append({
+                    'day': day,
+                    'prints': np.random.randint(paperless_day_prints-20, paperless_day_prints+20),
+                    'paper_purchase': np.random.randint(paperless_day_paper-5, paperless_day_paper+5),
+                    'digital_usage': np.random.randint(80, 95),  # 디지털 사용률
+                    'is_paperless': True
+                })
+            else:
+                weekly_data.append({
+                    'day': day,
+                    'prints': np.random.randint(base_prints-30, base_prints+30),
+                    'paper_purchase': np.random.randint(base_paper_purchase-10, base_paper_purchase+10),
+                    'digital_usage': np.random.randint(40, 60),
+                    'is_paperless': False
+                })
+        
+        st.session_state.paperless_data = {
+            "weekly_data": weekly_data,
+            "total_prints": sum(day['prints'] for day in weekly_data),
+            "total_paper_purchase": sum(day['paper_purchase'] for day in weekly_data),
+            "digital_adoption_rate": np.random.randint(65, 80),
+            "paper_savings": np.random.randint(20, 35),
+            "cost_savings": np.random.randint(500, 800)  # 천원 단위
+        }
+
+    st.markdown("---")
+
+    # 페이퍼리스 데이 정보 카드
+    st.subheader("📋 페이퍼리스 데이 정보")
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.info(f"""
+        **📅 지정 요일**: {paperless_info['target_day']}
+        
+        **🎯 목표**: {paperless_info['goal']}
+        
+        **📝 설명**: {paperless_info['description']}
+        """)
+    
+    with col2:
+        st.success(f"""
+        **🌱 환경효과**: 종이 사용 감소로 산림 보호
+        
+        **💰 경제효과**: 인쇄 비용 및 종이 구매비 절약
+        
+        **⚡ 효율성**: 디지털 업무 환경 구축
+        """)
+
+    st.markdown("---")
+
+    # 주간 현황
+    st.subheader("📊 주간 현황")
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.metric(
+            label="총 인쇄 건수",
+            value=f"{st.session_state.paperless_data['total_prints']}건",
+            delta=f"-{st.session_state.paperless_data['paper_savings']}%"
+        )
+    
+    with col2:
+        st.metric(
+            label="종이 구매량",
+            value=f"{st.session_state.paperless_data['total_paper_purchase']}L",
+            delta=f"-{st.session_state.paperless_data['paper_savings']-5}%"
+        )
+    
+    with col3:
+        st.metric(
+            label="디지털 채택률",
+            value=f"{st.session_state.paperless_data['digital_adoption_rate']}%",
+            delta=f"+{np.random.randint(5, 15)}%"
+        )
+    
+    with col4:
+        st.metric(
+            label="비용 절약",
+            value=f"{st.session_state.paperless_data['cost_savings']}천원",
+            delta=f"+{np.random.randint(50, 100)}천원"
+        )
+
+    st.markdown("---")
+
+    # 요일별 상세 현황
+    st.subheader("📅 요일별 상세 현황")
+    
+    # 요일별 데이터 테이블
+    weekly_df = pd.DataFrame(st.session_state.paperless_data['weekly_data'])
+    
+    # 페이퍼리스 데이 강조를 위한 스타일링
+    def highlight_paperless(row):
+        if row['is_paperless']:
+            return ['background-color: #d4edda'] * len(row)
+        return [''] * len(row)
+    
+    styled_df = weekly_df.style.apply(highlight_paperless, axis=1)
+    st.dataframe(styled_df, use_container_width=True)
+
+    st.markdown("---")
+
+    # 요일별 인쇄 건수 차트
+    st.subheader("📈 요일별 인쇄 건수 비교")
+    
+    fig_prints = px.bar(
+        weekly_df,
+        x='day',
+        y='prints',
+        title='요일별 인쇄 건수 (수요일: 페이퍼리스 데이)',
+        color='is_paperless',
+        color_discrete_map={True: '#28a745', False: '#6c757d'},
+        labels={'prints': '인쇄 건수', 'day': '요일'}
+    )
+    fig_prints.update_layout(
+        xaxis_title="요일",
+        yaxis_title="인쇄 건수"
+    )
+    st.plotly_chart(fig_prints, use_container_width=True)
+
+    st.markdown("---")
+
+    # 디지털 사용률 차트
+    st.subheader("💻 요일별 디지털 사용률")
+    
+    fig_digital = px.line(
+        weekly_df,
+        x='day',
+        y='digital_usage',
+        title='요일별 디지털 사용률',
+        markers=True,
+        labels={'digital_usage': '디지털 사용률 (%)', 'day': '요일'},
+        color_discrete_sequence=['#007bff']
+    )
+    fig_digital.update_layout(
+        xaxis_title="요일",
+        yaxis_title="디지털 사용률 (%)",
+        yaxis=dict(range=[0, 100])
+    )
+    st.plotly_chart(fig_digital, use_container_width=True)
+
+    st.markdown("---")
+
+    # 페이퍼리스 데이 참여 현황
+    st.subheader("🎯 페이퍼리스 데이 참여 현황")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("""
+        <div style="
+            border: 2px solid #28a745;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            background-color: #d4edda;
+            margin-bottom: 10px;
+        ">
+            <h3 style="margin: 0; color: #155724;">📄</h3>
+            <h4 style="margin: 10px 0; color: #155724;">페이퍼리스 데이</h4>
+            <p style="margin: 5px 0; font-size: 16px; color: #155724;">
+                참여 부서: {departments}개
+            </p>
+            <p style="margin: 5px 0; font-size: 16px; color: #155724;">
+                참여 직원: {employees}명
+            </p>
+        </div>
+        """.format(
+            departments=np.random.randint(8, 15),
+            employees=np.random.randint(120, 200)
+        ), unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown("""
+        <div style="
+            border: 2px solid #007bff;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            background-color: #cce7ff;
+            margin-bottom: 10px;
+        ">
+            <h3 style="margin: 0; color: #004085;">💻</h3>
+            <h4 style="margin: 10px 0; color: #004085;">디지털 도구 사용</h4>
+            <p style="margin: 5px 0; font-size: 16px; color: #004085;">
+                전자결재: {e_approval}%
+            </p>
+            <p style="margin: 5px 0; font-size: 16px; color: #004085;">
+                PDF 회의: {pdf_meeting}%
+            </p>
+        </div>
+        """.format(
+            e_approval=np.random.randint(85, 95),
+            pdf_meeting=np.random.randint(70, 85)
+        ), unsafe_allow_html=True)
+
+    st.markdown("---")
+
+    # 환경 효과 및 절약 효과
+    st.subheader("🌱 환경 효과 및 절약 효과")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.metric(
+            label="절약된 종이",
+            value=f"{st.session_state.paperless_data['total_paper_purchase'] * 0.3:.1f}L",
+            delta="주간 절약"
+        )
+    
+    with col2:
+        st.metric(
+            label="CO2 절약",
+            value=f"{st.session_state.paperless_data['total_paper_purchase'] * 0.3 * 0.5:.1f}kg",
+            delta="주간 절약"
+        )
+    
+    with col3:
+        st.metric(
+            label="나무 보호",
+            value=f"{st.session_state.paperless_data['total_paper_purchase'] * 0.3 * 0.02:.1f}그루",
+            delta="주간 절약"
+        )
+
+    st.markdown("---")
+
+    # 데이터 관리
+    st.subheader("🔄 데이터 관리")
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        if st.button("📊 데이터 초기화", use_container_width=True):
+            # 새로운 샘플 데이터 생성
+            base_prints = np.random.randint(200, 400)
+            base_paper_purchase = np.random.randint(50, 100)
+            paperless_day_prints = int(base_prints * 0.7)
+            paperless_day_paper = int(base_paper_purchase * 0.75)
+            
+            weekly_data = []
+            days = ['월', '화', '수', '목', '금']
+            for i, day in enumerate(days):
+                if day == '수':
+                    weekly_data.append({
+                        'day': day,
+                        'prints': np.random.randint(paperless_day_prints-20, paperless_day_prints+20),
+                        'paper_purchase': np.random.randint(paperless_day_paper-5, paperless_day_paper+5),
+                        'digital_usage': np.random.randint(80, 95),
+                        'is_paperless': True
+                    })
+                else:
+                    weekly_data.append({
+                        'day': day,
+                        'prints': np.random.randint(base_prints-30, base_prints+30),
+                        'paper_purchase': np.random.randint(base_paper_purchase-10, base_paper_purchase+10),
+                        'digital_usage': np.random.randint(40, 60),
+                        'is_paperless': False
+                    })
+            
+            st.session_state.paperless_data = {
+                "weekly_data": weekly_data,
+                "total_prints": sum(day['prints'] for day in weekly_data),
+                "total_paper_purchase": sum(day['paper_purchase'] for day in weekly_data),
+                "digital_adoption_rate": np.random.randint(65, 80),
+                "paper_savings": np.random.randint(20, 35),
+                "cost_savings": np.random.randint(500, 800)
+            }
+            st.success("샘플 데이터로 초기화되었습니다!")
+            st.rerun()
+    
+    with col2:
+        if st.button("📈 통계 새로고침", use_container_width=True):
+            st.info("통계 데이터를 새로고침했습니다!")
+    
+    with col3:
+        if st.button("📋 상세 리포트", use_container_width=True):
+            st.info("상세 리포트를 생성했습니다!")
+
+# 소등·절전 챌린지 페이지
+elif menu == "소등·절전 챌린지":
+    st.title("💡 소등·절전 챌린지")
+    st.write("퇴근 후 불필요한 조명·모니터 끄기와 점심시간 조명 절반 소등을 통해 전력 사용량을 줄입니다.")
+
+    # 소등·절전 챌린지 정보
+    power_saving_info = {
+        "name": "소등·절전 챌린지",
+        "description": "퇴근 후 불필요한 조명·모니터 끄기, 점심시간 조명 절반 소등을 통한 전력 절약",
+        "target_time": "퇴근 후 (18:00~), 점심시간 (12:00~13:00)",
+        "goal": "월별 전력 사용량 20% 감소, 전기요금 절약"
+    }
+
+    # 세션 상태 초기화 (샘플 데이터 포함)
+    if 'power_saving_data' not in st.session_state:
+        # 샘플 데이터 생성
+        base_monthly_power = np.random.randint(8000, 12000)  # 기본 월 전력 사용량 (kWh)
+        base_electricity_bill = base_monthly_power * 120  # 기본 전기요금 (원, kWh당 120원)
+        
+        # 절전 효과 (20% 감소)
+        saved_power = int(base_monthly_power * 0.2)
+        saved_bill = int(base_electricity_bill * 0.2)
+        
+        # 일별 데이터 생성 (최근 30일)
+        daily_data = []
+        for i in range(30):
+            day = (datetime.now() - timedelta(days=29-i)).strftime("%m/%d")
+            weekday = (datetime.now() - timedelta(days=29-i)).weekday()
+            
+            # 평일과 주말 구분
+            if weekday < 5:  # 평일
+                base_daily_power = np.random.randint(250, 350)
+                # 절전 효과 적용 (퇴근 후, 점심시간)
+                power_saved = np.random.randint(40, 80)
+                daily_power = base_daily_power - power_saved
+            else:  # 주말
+                base_daily_power = np.random.randint(100, 150)
+                power_saved = np.random.randint(20, 40)
+                daily_power = base_daily_power - power_saved
+            
+            daily_data.append({
+                'date': day,
+                'power_usage': daily_power,
+                'power_saved': power_saved,
+                'is_weekday': weekday < 5,
+                'lights_off': np.random.randint(80, 95),  # 조명 소등률
+                'monitors_off': np.random.randint(70, 90),  # 모니터 소등률
+                'lunch_saving': np.random.randint(60, 80)  # 점심시간 절전률
+            })
+        
+        # 월별 비교 데이터
+        monthly_comparison = {
+            'previous_month': {
+                'power_usage': base_monthly_power,
+                'electricity_bill': base_electricity_bill,
+                'lights_off_rate': np.random.randint(40, 60),
+                'monitors_off_rate': np.random.randint(30, 50)
+            },
+            'current_month': {
+                'power_usage': base_monthly_power - saved_power,
+                'electricity_bill': base_electricity_bill - saved_bill,
+                'lights_off_rate': np.random.randint(80, 95),
+                'monitors_off_rate': np.random.randint(70, 90)
+            }
+        }
+        
+        st.session_state.power_saving_data = {
+            "daily_data": daily_data,
+            "monthly_comparison": monthly_comparison,
+            "total_power_saved": saved_power,
+            "total_bill_saved": saved_bill,
+            "participation_rate": np.random.randint(85, 95),
+            "average_daily_saving": saved_power // 30
+        }
+
+    st.markdown("---")
+
+    # 소등·절전 챌린지 정보 카드
+    st.subheader("📋 소등·절전 챌린지 정보")
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.info(f"""
+        **⏰ 대상 시간**: {power_saving_info['target_time']}
+        
+        **🎯 목표**: {power_saving_info['goal']}
+        
+        **📝 설명**: {power_saving_info['description']}
+        """)
+    
+    with col2:
+        st.success(f"""
+        **🌱 환경효과**: 전력 사용량 감소로 탄소 배출 줄이기
+        
+        **💰 경제효과**: 전기요금 절약으로 운영비용 감소
+        
+        **⚡ 효율성**: 에너지 효율적인 업무 환경 구축
+        """)
+
+    st.markdown("---")
+
+    # 월별 절약 현황
+    st.subheader("📊 월별 절약 현황")
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.metric(
+            label="전력 절약량",
+            value=f"{st.session_state.power_saving_data['total_power_saved']}kWh",
+            delta=f"-{st.session_state.power_saving_data['total_power_saved']}kWh"
+        )
+    
+    with col2:
+        st.metric(
+            label="전기요금 절약",
+            value=f"{st.session_state.power_saving_data['total_bill_saved']:,}원",
+            delta=f"-{st.session_state.power_saving_data['total_bill_saved']:,}원"
+        )
+    
+    with col3:
+        st.metric(
+            label="참여율",
+            value=f"{st.session_state.power_saving_data['participation_rate']}%",
+            delta=f"+{np.random.randint(5, 15)}%"
+        )
+    
+    with col4:
+        st.metric(
+            label="일평균 절약",
+            value=f"{st.session_state.power_saving_data['average_daily_saving']}kWh",
+            delta="일일 평균"
+        )
+
+    st.markdown("---")
+
+    # 월별 전력 사용량 비교
+    st.subheader("📈 월별 전력 사용량 비교")
+    
+    comparison_data = st.session_state.power_saving_data['monthly_comparison']
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("**이전 달**")
+        st.metric("전력 사용량", f"{comparison_data['previous_month']['power_usage']:,}kWh")
+        st.metric("전기요금", f"{comparison_data['previous_month']['electricity_bill']:,}원")
+        st.metric("조명 소등률", f"{comparison_data['previous_month']['lights_off_rate']}%")
+        st.metric("모니터 소등률", f"{comparison_data['previous_month']['monitors_off_rate']}%")
+    
+    with col2:
+        st.markdown("**이번 달**")
+        st.metric("전력 사용량", f"{comparison_data['current_month']['power_usage']:,}kWh")
+        st.metric("전기요금", f"{comparison_data['current_month']['electricity_bill']:,}원")
+        st.metric("조명 소등률", f"{comparison_data['current_month']['lights_off_rate']}%")
+        st.metric("모니터 소등률", f"{comparison_data['current_month']['monitors_off_rate']}%")
+
+    st.markdown("---")
+
+    # 일별 전력 사용량 추이
+    st.subheader("📅 일별 전력 사용량 추이")
+    
+    daily_df = pd.DataFrame(st.session_state.power_saving_data['daily_data'])
+    
+    fig_daily = px.line(
+        daily_df,
+        x='date',
+        y='power_usage',
+        title='일별 전력 사용량 추이',
+        markers=True,
+        labels={'power_usage': '전력 사용량 (kWh)', 'date': '날짜'},
+        color_discrete_sequence=['#28a745']
+    )
+    fig_daily.update_layout(
+        xaxis_title="날짜",
+        yaxis_title="전력 사용량 (kWh)",
+        xaxis_tickangle=45
+    )
+    st.plotly_chart(fig_daily, use_container_width=True)
+
+    st.markdown("---")
+
+    # 절전 활동별 효과
+    st.subheader("💡 절전 활동별 효과")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.markdown("""
+        <div style="
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            background-color: #fff3cd;
+            margin-bottom: 10px;
+        ">
+            <h3 style="margin: 0; color: #856404;">💡</h3>
+            <h4 style="margin: 10px 0; color: #856404;">퇴근 후 조명 소등</h4>
+            <p style="margin: 5px 0; font-size: 16px; color: #856404;">
+                소등률: {lights_off}%
+            </p>
+            <p style="margin: 5px 0; font-size: 16px; color: #856404;">
+                절약량: {lights_saving}kWh
+            </p>
+        </div>
+        """.format(
+            lights_off=np.random.randint(80, 95),
+            lights_saving=np.random.randint(200, 300)
+        ), unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown("""
+        <div style="
+            border: 2px solid #17a2b8;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            background-color: #d1ecf1;
+            margin-bottom: 10px;
+        ">
+            <h3 style="margin: 0; color: #0c5460;">🖥️</h3>
+            <h4 style="margin: 10px 0; color: #0c5460;">모니터 자동 소등</h4>
+            <p style="margin: 5px 0; font-size: 16px; color: #0c5460;">
+                소등률: {monitors_off}%
+            </p>
+            <p style="margin: 5px 0; font-size: 16px; color: #0c5460;">
+                절약량: {monitors_saving}kWh
+            </p>
+        </div>
+        """.format(
+            monitors_off=np.random.randint(70, 90),
+            monitors_saving=np.random.randint(150, 250)
+        ), unsafe_allow_html=True)
+    
+    with col3:
+        st.markdown("""
+        <div style="
+            border: 2px solid #6f42c1;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            background-color: #e2d9f3;
+            margin-bottom: 10px;
+        ">
+            <h3 style="margin: 0; color: #4a2c7a;">🍽️</h3>
+            <h4 style="margin: 10px 0; color: #4a2c7a;">점심시간 절전</h4>
+            <p style="margin: 5px 0; font-size: 16px; color: #4a2c7a;">
+                절전률: {lunch_saving}%
+            </p>
+            <p style="margin: 5px 0; font-size: 16px; color: #4a2c7a;">
+                절약량: {lunch_power_saving}kWh
+            </p>
+        </div>
+        """.format(
+            lunch_saving=np.random.randint(60, 80),
+            lunch_power_saving=np.random.randint(100, 200)
+        ), unsafe_allow_html=True)
+
+    st.markdown("---")
+
+    # 절전 활동별 효과 차트
+    st.subheader("📊 절전 활동별 효과")
+    
+    activities = ['퇴근 후 조명 소등', '모니터 자동 소등', '점심시간 절전']
+    savings = [
+        np.random.randint(200, 300),
+        np.random.randint(150, 250),
+        np.random.randint(100, 200)
+    ]
+    
+    fig_activities = px.bar(
+        x=activities,
+        y=savings,
+        title='절전 활동별 월간 절약량',
+        labels={'x': '절전 활동', 'y': '절약량 (kWh)'},
+        color=savings,
+        color_continuous_scale='Greens'
+    )
+    fig_activities.update_layout(
+        xaxis_title="절전 활동",
+        yaxis_title="절약량 (kWh)"
+    )
+    st.plotly_chart(fig_activities, use_container_width=True)
+
+    st.markdown("---")
+
+    # 환경 효과
+    st.subheader("🌱 환경 효과")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    total_saved = st.session_state.power_saving_data['total_power_saved']
+    
+    with col1:
+        st.metric(
+            label="CO2 절약",
+            value=f"{total_saved * 0.4:.1f}kg",
+            delta="월간 절약"
+        )
+    
+    with col2:
+        st.metric(
+            label="나무 보호",
+            value=f"{total_saved * 0.01:.1f}그루",
+            delta="월간 보호"
+        )
+    
+    with col3:
+        st.metric(
+            label="환경등가",
+            value=f"{total_saved * 0.05:.1f}L",
+            delta="휘발유 절약"
+        )
+
+    st.markdown("---")
+
+    # 데이터 관리
+    st.subheader("🔄 데이터 관리")
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        if st.button("📊 데이터 초기화", width='stretch'):
+            # 새로운 샘플 데이터 생성
+            base_monthly_power = np.random.randint(8000, 12000)
+            base_electricity_bill = base_monthly_power * 120
+            saved_power = int(base_monthly_power * 0.2)
+            saved_bill = int(base_electricity_bill * 0.2)
+            
+            daily_data = []
+            for i in range(30):
+                day = (datetime.now() - timedelta(days=29-i)).strftime("%m/%d")
+                weekday = (datetime.now() - timedelta(days=29-i)).weekday()
+                
+                if weekday < 5:
+                    base_daily_power = np.random.randint(250, 350)
+                    power_saved = np.random.randint(40, 80)
+                    daily_power = base_daily_power - power_saved
+                else:
+                    base_daily_power = np.random.randint(100, 150)
+                    power_saved = np.random.randint(20, 40)
+                    daily_power = base_daily_power - power_saved
+                
+                daily_data.append({
+                    'date': day,
+                    'power_usage': daily_power,
+                    'power_saved': power_saved,
+                    'is_weekday': weekday < 5,
+                    'lights_off': np.random.randint(80, 95),
+                    'monitors_off': np.random.randint(70, 90),
+                    'lunch_saving': np.random.randint(60, 80)
+                })
+            
+            monthly_comparison = {
+                'previous_month': {
+                    'power_usage': base_monthly_power,
+                    'electricity_bill': base_electricity_bill,
+                    'lights_off_rate': np.random.randint(40, 60),
+                    'monitors_off_rate': np.random.randint(30, 50)
+                },
+                'current_month': {
+                    'power_usage': base_monthly_power - saved_power,
+                    'electricity_bill': base_electricity_bill - saved_bill,
+                    'lights_off_rate': np.random.randint(80, 95),
+                    'monitors_off_rate': np.random.randint(70, 90)
+                }
+            }
+            
+            st.session_state.power_saving_data = {
+                "daily_data": daily_data,
+                "monthly_comparison": monthly_comparison,
+                "total_power_saved": saved_power,
+                "total_bill_saved": saved_bill,
+                "participation_rate": np.random.randint(85, 95),
+                "average_daily_saving": saved_power // 30
+            }
+            st.success("샘플 데이터로 초기화되었습니다!")
+            st.rerun()
+    
+    with col2:
+        if st.button("📈 통계 새로고침", width='stretch'):
+            st.info("통계 데이터를 새로고침했습니다!")
+    
+    with col3:
+        if st.button("📋 절전 리포트", width='stretch'):
+            st.info("절전 리포트를 생성했습니다!")
 
 # 임직원 아이디어 페이지
 elif menu == "임직원 아이디어":
