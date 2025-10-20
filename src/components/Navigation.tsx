@@ -17,6 +17,7 @@ import {
   Business as BusinessIcon,
   Recycling as RecyclingIcon,
   Lightbulb as LightbulbIcon,
+  Park as EcoIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -49,13 +50,29 @@ const Navigation: React.FC = () => {
         },
       }}
     >
-      <Box sx={{ p: 2 }}>
-        <Typography variant="h6" component="div" sx={{ fontWeight: 'bold' }}>
-          삼성SDS
-        </Typography>
-        <Typography variant="subtitle2" sx={{ opacity: 0.8 }}>
-          탄소관리 시스템
-        </Typography>
+      <Box 
+        sx={{ 
+          p: 2, 
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1,
+          '&:hover': {
+            backgroundColor: 'rgba(255,255,255,0.05)',
+          },
+          transition: 'background-color 0.2s',
+        }}
+        onClick={() => navigate('/')}
+      >
+        <EcoIcon sx={{ fontSize: 28, color: '#4ade80' }} />
+        <Box>
+          <Typography variant="h6" component="div" sx={{ fontWeight: 'bold' }}>
+            삼성SDS ESG
+          </Typography>
+          <Typography variant="subtitle2" sx={{ opacity: 0.8 }}>
+            탄소관리 시스템
+          </Typography>
+        </Box>
       </Box>
       <Divider sx={{ backgroundColor: 'rgba(255,255,255,0.2)' }} />
       <List>
