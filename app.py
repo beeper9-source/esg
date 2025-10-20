@@ -2591,48 +2591,365 @@ elif menu == "사무실 미니 플리마켓":
 # 임직원 아이디어 페이지
 elif menu == "임직원 아이디어":
     st.title("💡 임직원 아이디어")
+    st.write("삼성SDS 임직원들의 혁신적인 ESG 아이디어를 수집하고 단계별로 관리합니다.")
     
-    col1, col2 = st.columns([2, 1])
+    # 아이디어 Workflow 정보
+    workflow_info = {
+        "name": "ESG 아이디어 공모전",
+        "description": "임직원들의 혁신적인 ESG 아이디어 수집 및 단계별 관리",
+        "schedule": "분기별 공모전 개최",
+        "goal": "아이디어 구현률 20% 달성, 혁신 문화 조성"
+    }
+    
+    # 세션 상태 초기화 (샘플 데이터 포함)
+    if 'idea_data' not in st.session_state:
+        # Workflow 단계별 샘플 데이터
+        workflow_stages = {
+            "제안": {
+                "count": 45,
+                "color": "#FF6B6B",
+                "description": "새로운 아이디어 제안",
+                "icon": "💡"
+            },
+            "검토": {
+                "count": 28,
+                "color": "#4ECDC4", 
+                "description": "전문가 검토 중",
+                "icon": "🔍"
+            },
+            "평가": {
+                "count": 18,
+                "color": "#45B7D1",
+                "description": "실현가능성 평가",
+                "icon": "📊"
+            },
+            "승인": {
+                "count": 12,
+                "color": "#96CEB4",
+                "description": "구현 승인됨",
+                "icon": "✅"
+            },
+            "구현": {
+                "count": 8,
+                "color": "#FFEAA7",
+                "description": "실제 구현 중",
+                "icon": "🚀"
+            },
+            "완료": {
+                "count": 5,
+                "color": "#DDA0DD",
+                "description": "구현 완료",
+                "icon": "🎉"
+            }
+        }
+        
+        # 카테고리별 통계
+        category_stats = {
+            "Scope 1": {"total": 25, "implemented": 3},
+            "Scope 2": {"total": 18, "implemented": 2},
+            "Scope 3": {"total": 22, "implemented": 2},
+            "순환경제": {"total": 15, "implemented": 1},
+            "기타": {"total": 12, "implemented": 0}
+        }
+        
+        st.session_state.idea_data = {
+            "workflow_stages": workflow_stages,
+            "category_stats": category_stats,
+            "total_ideas": sum(stage["count"] for stage in workflow_stages.values()),
+            "implemented_ideas": workflow_stages["완료"]["count"],
+            "implementation_rate": round((workflow_stages["완료"]["count"] / sum(stage["count"] for stage in workflow_stages.values())) * 100, 1)
+        }
+    
+    st.markdown("---")
+    
+    # 아이디어 공모전 정보 카드
+    st.subheader("📋 아이디어 공모전 정보")
+    col1, col2 = st.columns(2)
     
     with col1:
-        st.subheader("아이디어 제안")
+        st.info(f"""
+        **📅 일정**: {workflow_info['schedule']}
         
-        with st.form("idea_form"):
-            title = st.text_input("제목", placeholder="아이디어 제목을 입력하세요")
-            description = st.text_area("설명", placeholder="아이디어에 대한 자세한 설명을 입력하세요", height=100)
-            
-            col1, col2 = st.columns(2)
-            with col1:
-                category = st.selectbox("카테고리", ["Scope 1", "Scope 2", "Scope 3", "순환경제", "기타"])
-                department = st.selectbox("부서", ["IT개발팀", "시설관리팀", "구매팀", "환경팀", "마케팅팀", "인사팀"])
-            with col2:
-                priority = st.selectbox("우선순위", ["낮음", "보통", "높음"])
-            
-            submitted = st.form_submit_button("제안")
-            if submitted:
-                st.success(f"'{title}' 아이디어가 제안되었습니다!")
+        **🎯 목표**: {workflow_info['goal']}
+        
+        **📝 설명**: {workflow_info['description']}
+        """)
     
     with col2:
-        st.subheader("요약")
-        st.metric("총 아이디어", "127건")
-        st.metric("구현된 아이디어", "15건")
-        st.metric("총 좋아요", "342개")
-        st.metric("구현률", "11.8%")
+        st.success(f"""
+        **💡 혁신효과**: 임직원 창의성 발휘
+        
+        **🌱 ESG효과**: 지속가능한 경영 실현
+        
+        **🤝 협업효과**: 부서 간 소통 강화
+        """)
     
-    # 인기 아이디어 TOP 3
-    st.subheader("인기 아이디어 TOP 3")
+    st.markdown("---")
     
-    ideas_data = [
-        {"title": "사무용 전기차 충전소 확대", "likes": 15, "category": "Scope 1", "status": "구현됨"},
-        {"title": "스마트 조명 시스템 도입", "likes": 12, "category": "Scope 2", "status": "승인됨"},
-        {"title": "공급업체 친환경 인증 제도", "likes": 18, "category": "Scope 3", "status": "검토중"}
+    # 전체 통계
+    st.subheader("📊 전체 통계")
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.metric(
+            label="총 아이디어",
+            value=f"{st.session_state.idea_data['total_ideas']}건",
+            delta=f"+{np.random.randint(3, 8)}건"
+        )
+    
+    with col2:
+        st.metric(
+            label="구현 완료",
+            value=f"{st.session_state.idea_data['implemented_ideas']}건",
+            delta=f"+{np.random.randint(1, 3)}건"
+        )
+    
+    with col3:
+        st.metric(
+            label="구현률",
+            value=f"{st.session_state.idea_data['implementation_rate']}%",
+            delta=f"+{np.random.randint(1, 3)}%"
+        )
+    
+    with col4:
+        st.metric(
+            label="진행중",
+            value=f"{st.session_state.idea_data['workflow_stages']['구현']['count']}건",
+            delta=f"+{np.random.randint(1, 2)}건"
+        )
+    
+    st.markdown("---")
+    
+    # Workflow 간반차트
+    st.subheader("🔄 아이디어 Workflow 진행현황")
+    
+    # 간반차트 데이터 준비
+    stages = list(st.session_state.idea_data['workflow_stages'].keys())
+    counts = [st.session_state.idea_data['workflow_stages'][stage]['count'] for stage in stages]
+    colors = [st.session_state.idea_data['workflow_stages'][stage]['color'] for stage in stages]
+    
+    # 간반차트 생성
+    fig_workflow = px.funnel(
+        x=counts,
+        y=stages,
+        title='아이디어 Workflow 단계별 진행현황',
+        color=stages,
+        color_discrete_sequence=colors,
+        orientation='h'
+    )
+    
+    fig_workflow.update_layout(
+        height=400,
+        xaxis_title="아이디어 수",
+        yaxis_title="Workflow 단계",
+        showlegend=False
+    )
+    
+    st.plotly_chart(fig_workflow, use_container_width=True)
+    
+    st.markdown("---")
+    
+    # 단계별 상세 정보
+    st.subheader("📈 단계별 상세 현황")
+    
+    # 3열 레이아웃으로 단계별 카드 표시
+    cols = st.columns(3)
+    
+    for i, (stage_name, stage_info) in enumerate(st.session_state.idea_data['workflow_stages'].items()):
+        col_idx = i % 3
+        with cols[col_idx]:
+            st.markdown(f"""
+            <div style="
+                border: 2px solid {stage_info['color']};
+                border-radius: 10px;
+                padding: 20px;
+                text-align: center;
+                background-color: #f8f9fa;
+                margin-bottom: 10px;
+            ">
+                <h3 style="margin: 0; color: {stage_info['color']};">{stage_info['icon']}</h3>
+                <h4 style="margin: 10px 0; color: #333;">{stage_name}</h4>
+                <p style="margin: 5px 0; font-size: 24px; font-weight: bold; color: {stage_info['color']};">
+                    {stage_info['count']}건
+                </p>
+                <p style="margin: 5px 0; font-size: 12px; color: #6c757d;">
+                    {stage_info['description']}
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+    
+    st.markdown("---")
+    
+    # 카테고리별 통계
+    st.subheader("📊 카테고리별 아이디어 현황")
+    
+    categories = list(st.session_state.idea_data['category_stats'].keys())
+    total_counts = [st.session_state.idea_data['category_stats'][cat]['total'] for cat in categories]
+    implemented_counts = [st.session_state.idea_data['category_stats'][cat]['implemented'] for cat in categories]
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        fig_total = px.bar(
+            x=categories,
+            y=total_counts,
+            title='카테고리별 총 아이디어 수',
+            labels={'x': '카테고리', 'y': '아이디어 수'},
+            color=total_counts,
+            color_continuous_scale='Blues'
+        )
+        fig_total.update_layout(xaxis_title="카테고리", yaxis_title="총 아이디어 수")
+        st.plotly_chart(fig_total, use_container_width=True)
+    
+    with col2:
+        fig_implemented = px.bar(
+            x=categories,
+            y=implemented_counts,
+            title='카테고리별 구현된 아이디어 수',
+            labels={'x': '카테고리', 'y': '구현된 아이디어 수'},
+            color=implemented_counts,
+            color_continuous_scale='Greens'
+        )
+        fig_implemented.update_layout(xaxis_title="카테고리", yaxis_title="구현된 아이디어 수")
+        st.plotly_chart(fig_implemented, use_container_width=True)
+    
+    st.markdown("---")
+    
+    # 아이디어 제안 섹션
+    st.subheader("💡 새 아이디어 제안")
+    
+    with st.form("idea_submission"):
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            idea_title = st.text_input("아이디어 제목", placeholder="예: 스마트 조명 시스템 도입")
+            idea_category = st.selectbox("카테고리", ["Scope 1", "Scope 2", "Scope 3", "순환경제", "기타"])
+            idea_department = st.selectbox("제안 부서", ["IT개발팀", "시설관리팀", "구매팀", "환경팀", "마케팅팀", "인사팀"])
+        
+        with col2:
+            idea_priority = st.selectbox("우선순위", ["낮음", "보통", "높음", "긴급"])
+            expected_impact = st.selectbox("예상 효과", ["낮음", "보통", "높음", "매우 높음"])
+            implementation_period = st.selectbox("구현 기간", ["1개월", "3개월", "6개월", "1년", "1년 이상"])
+        
+        idea_description = st.text_area("아이디어 상세 설명", placeholder="아이디어의 배경, 목적, 구체적인 방안 등을 자세히 설명해주세요.", height=100)
+        
+        submitted = st.form_submit_button("아이디어 제안")
+        if submitted:
+            if idea_title and idea_description:
+                st.success(f"'{idea_title}' 아이디어가 성공적으로 제안되었습니다! 🎉")
+                st.info("제안된 아이디어는 검토 단계로 이동하여 전문가들의 평가를 받게 됩니다.")
+            else:
+                st.error("제목과 설명을 모두 입력해주세요!")
+    
+    st.markdown("---")
+    
+    # 인기 아이디어 TOP 5
+    st.subheader("🏆 인기 아이디어 TOP 5")
+    
+    popular_ideas = [
+        {"title": "사무용 전기차 충전소 확대", "likes": 25, "category": "Scope 1", "stage": "구현", "impact": "높음"},
+        {"title": "스마트 조명 시스템 도입", "likes": 22, "category": "Scope 2", "stage": "승인", "impact": "높음"},
+        {"title": "공급업체 친환경 인증 제도", "likes": 18, "category": "Scope 3", "stage": "평가", "impact": "매우 높음"},
+        {"title": "사무실 내 재활용 시스템 개선", "likes": 15, "category": "순환경제", "stage": "검토", "impact": "보통"},
+        {"title": "원격근무 환경 최적화", "likes": 12, "category": "기타", "stage": "제안", "impact": "높음"}
     ]
     
-    for i, idea in enumerate(ideas_data, 1):
+    for i, idea in enumerate(popular_ideas, 1):
         with st.expander(f"#{i} {idea['title']} (👍 {idea['likes']})"):
-            st.write(f"**카테고리:** {idea['category']}")
-            st.write(f"**상태:** {idea['status']}")
-            st.write("**설명:** 해당 아이디어에 대한 상세 설명...")
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                st.write(f"**카테고리:** {idea['category']}")
+                st.write(f"**현재 단계:** {idea['stage']}")
+            
+            with col2:
+                st.write(f"**예상 효과:** {idea['impact']}")
+                st.write(f"**좋아요 수:** {idea['likes']}개")
+            
+            with col3:
+                st.write("**상태:** 진행중")
+                st.write("**제안자:** 김혁신")
+            
+            st.write("**상세 설명:** 해당 아이디어에 대한 구체적인 내용과 기대효과...")
+    
+    st.markdown("---")
+    
+    # 데이터 관리
+    st.subheader("🔄 데이터 관리")
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        if st.button("📊 데이터 초기화", width='stretch'):
+            # 새로운 샘플 데이터 생성
+            workflow_stages = {
+                "제안": {
+                    "count": np.random.randint(40, 50),
+                    "color": "#FF6B6B",
+                    "description": "새로운 아이디어 제안",
+                    "icon": "💡"
+                },
+                "검토": {
+                    "count": np.random.randint(25, 35),
+                    "color": "#4ECDC4", 
+                    "description": "전문가 검토 중",
+                    "icon": "🔍"
+                },
+                "평가": {
+                    "count": np.random.randint(15, 25),
+                    "color": "#45B7D1",
+                    "description": "실현가능성 평가",
+                    "icon": "📊"
+                },
+                "승인": {
+                    "count": np.random.randint(10, 15),
+                    "color": "#96CEB4",
+                    "description": "구현 승인됨",
+                    "icon": "✅"
+                },
+                "구현": {
+                    "count": np.random.randint(5, 12),
+                    "color": "#FFEAA7",
+                    "description": "실제 구현 중",
+                    "icon": "🚀"
+                },
+                "완료": {
+                    "count": np.random.randint(3, 8),
+                    "color": "#DDA0DD",
+                    "description": "구현 완료",
+                    "icon": "🎉"
+                }
+            }
+            
+            category_stats = {
+                "Scope 1": {"total": np.random.randint(20, 30), "implemented": np.random.randint(2, 5)},
+                "Scope 2": {"total": np.random.randint(15, 25), "implemented": np.random.randint(1, 4)},
+                "Scope 3": {"total": np.random.randint(18, 28), "implemented": np.random.randint(1, 4)},
+                "순환경제": {"total": np.random.randint(12, 20), "implemented": np.random.randint(1, 3)},
+                "기타": {"total": np.random.randint(8, 15), "implemented": np.random.randint(0, 2)}
+            }
+            
+            total_ideas = sum(stage["count"] for stage in workflow_stages.values())
+            implemented_ideas = workflow_stages["완료"]["count"]
+            implementation_rate = round((implemented_ideas / total_ideas) * 100, 1)
+            
+            st.session_state.idea_data = {
+                "workflow_stages": workflow_stages,
+                "category_stats": category_stats,
+                "total_ideas": total_ideas,
+                "implemented_ideas": implemented_ideas,
+                "implementation_rate": implementation_rate
+            }
+            st.success("샘플 데이터로 초기화되었습니다!")
+            st.rerun()
+    
+    with col2:
+        if st.button("📈 통계 새로고침", width='stretch'):
+            st.info("통계 데이터를 새로고침했습니다!")
+    
+    with col3:
+        if st.button("📋 아이디어 리포트", width='stretch'):
+            st.info("아이디어 리포트를 생성했습니다!")
 
 # 푸터
 st.markdown("---")
