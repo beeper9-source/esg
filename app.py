@@ -7,7 +7,7 @@ import numpy as np
 
 # 페이지 설정
 st.set_page_config(
-    page_title="삼성SDS ESG 탄소관리 시스템",
+    page_title="삼성SDS ESG Re:source",
     page_icon="🌱",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -58,6 +58,20 @@ st.markdown("""
     .sidebar div {
         text-align: left !important;
     }
+    
+    /* Re:source 깜박임 애니메이션 */
+    @keyframes blink {
+        0%, 50% {
+            opacity: 1;
+        }
+        51%, 100% {
+            opacity: 0.3;
+        }
+    }
+    
+    .blink-text {
+        animation: blink 2s ease-in-out infinite;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -65,7 +79,7 @@ st.markdown("""
 st.sidebar.markdown("""
 <div style="padding: 1rem; text-align: left;">
     <h2 style="color: white; margin: 0; text-align: left !important;">🌱 삼성SDS ESG</h2>
-    <p style="color: #e0e0e0; margin: 0; text-align: left !important;">탄소관리 시스템</p>
+    <p class="blink-text" style="color: #e0e0e0; margin: 0; text-align: left !important;">Re:source</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -5652,6 +5666,6 @@ elif menu == "임직원 아이디어":
 st.markdown("---")
 st.markdown("""
 <div style="text-align: center; color: #666; padding: 1rem;">
-    <p>🌱 <strong>삼성SDS 탄소관리 시스템</strong> - 디지털 혁신으로 지속가능한 미래를 만들어갑니다</p>
+    <p>🌱 <strong>삼성SDS ESG Re:source</strong> - 디지털 혁신으로 지속가능한 미래를 만들어갑니다</p>
 </div>
 """, unsafe_allow_html=True)
