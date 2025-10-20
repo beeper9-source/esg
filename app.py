@@ -59,6 +59,27 @@ st.markdown("""
         text-align: left !important;
     }
     
+    /* 선택된 메뉴 항목 스타일 */
+    .selected-menu-item {
+        background-color: #e8f5e8 !important;
+        border: 2px solid #2e7d32 !important;
+        border-radius: 8px !important;
+        padding: 8px !important;
+        margin: 2px 0 !important;
+        font-weight: bold !important;
+        color: #1b5e20 !important;
+    }
+    
+    .selected-category {
+        background-color: #e8f5e8 !important;
+        border: 2px solid #2e7d32 !important;
+        border-radius: 8px !important;
+        padding: 8px !important;
+        margin: 5px 0 !important;
+        font-weight: bold !important;
+        color: #1b5e20 !important;
+    }
+    
     /* Re:source 깜박임 애니메이션 */
     @keyframes blink {
         0%, 50% {
@@ -115,39 +136,46 @@ level1_menus = {
 if 'selected_level1' not in st.session_state:
     st.session_state.selected_level1 = "E : 환경"
 
-# Level 1 버튼들
-for level1 in level1_menus.keys():
-    if st.sidebar.button(f"📁 {level1}", key=f"level1_{level1}", use_container_width=True):
-        st.session_state.selected_level1 = level1
-        st.rerun()
-
-st.sidebar.markdown("---")
-
-# Level 2 메뉴들
-st.sidebar.markdown(f"**{st.session_state.selected_level1}**")
-for level2_name, level2_value in level1_menus[st.session_state.selected_level1].items():
-    if st.sidebar.button(f"📋 {level2_name}", key=f"level2_{level2_value}", use_container_width=True):
-        st.session_state.selected_menu = level2_value
-        st.rerun()
-
 # 기본 메뉴 선택
 if 'selected_menu' not in st.session_state:
     st.session_state.selected_menu = "계단 오르기"
 
 menu = st.session_state.selected_menu
 
-# 현재 선택된 메뉴 표시
-st.sidebar.markdown(f"**현재 페이지:** {menu}")
+# 모든 카테고리 메뉴 표시 (모두 펼쳐진 상태)
+for level1_name, level2_items in level1_menus.items():
+    # 카테고리 제목
+    if level1_name == st.session_state.selected_level1:
+        st.sidebar.markdown(f"""
+        <div class="selected-category">
+            <strong>🔽 {level1_name}</strong>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.sidebar.markdown(f"**📁 {level1_name}**")
+    
+    # 모든 하위 메뉴 표시 (항상 펼쳐진 상태)
+    for level2_name, level2_value in level2_items.items():
+        if level2_value == st.session_state.selected_menu:
+            # 선택된 메뉴 항목
+            st.sidebar.markdown(f"""
+            <div class="selected-menu-item">
+                📋 {level2_name}
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            # 일반 메뉴 항목
+            if st.sidebar.button(f"  📋 {level2_name}", key=f"level2_{level2_value}", use_container_width=True):
+                st.session_state.selected_level1 = level1_name
+                st.session_state.selected_menu = level2_value
+                st.rerun()
+    
+    st.sidebar.markdown("")  # 카테고리 간 간격
 
 st.sidebar.markdown("---")
-st.sidebar.markdown("### 🚀 빠른 액세스")
-if st.sidebar.button("🏠 환경 메뉴로 이동", use_container_width=True):
-    st.session_state.selected_level1 = "E : 환경"
-    st.session_state.selected_menu = "계단 오르기"
-    st.rerun()
 
 # 계단 오르기 페이지
-elif menu == "계단 오르기":
+if menu == "계단 오르기":
     st.title("🏢 계단 오르기 캠페인")
     st.write("삼성SDS 5개 사옥에서 진행하는 친환경 계단 오르기 캠페인을 관리합니다.")
 
