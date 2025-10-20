@@ -2002,6 +2002,7 @@ elif menu == "사무실 미니 플리마켓":
                 "seller": "김개발",
                 "description": "2020년 모델, 상태 양호",
                 "image": "💻",
+                "image_url": "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=300&h=200&fit=crop",
                 "status": "판매중",
                 "donation_amount": 0
             },
@@ -2013,6 +2014,7 @@ elif menu == "사무실 미니 플리마켓":
                 "seller": "이책사",
                 "description": "1-7권 완전판, 새책 수준",
                 "image": "📚",
+                "image_url": "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=200&fit=crop",
                 "status": "판매중",
                 "donation_amount": 0
             },
@@ -2024,6 +2026,7 @@ elif menu == "사무실 미니 플리마켓":
                 "seller": "박운동",
                 "description": "사이즈 270, 몇 번만 착용",
                 "image": "👟",
+                "image_url": "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300&h=200&fit=crop",
                 "status": "판매중",
                 "donation_amount": 0
             },
@@ -2035,6 +2038,7 @@ elif menu == "사무실 미니 플리마켓":
                 "seller": "최패션",
                 "description": "L사이즈, 깨끗한 상태",
                 "image": "👕",
+                "image_url": "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=300&h=200&fit=crop",
                 "status": "판매중",
                 "donation_amount": 0
             },
@@ -2046,6 +2050,7 @@ elif menu == "사무실 미니 플리마켓":
                 "seller": "정폰케이스",
                 "description": "투명 케이스, 스크래치 없음",
                 "image": "📱",
+                "image_url": "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=300&h=200&fit=crop",
                 "status": "판매중",
                 "donation_amount": 0
             },
@@ -2057,6 +2062,7 @@ elif menu == "사무실 미니 플리마켓":
                 "seller": "한커피",
                 "description": "네스프레소 캡슐 머신",
                 "image": "☕",
+                "image_url": "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=300&h=200&fit=crop",
                 "status": "판매중",
                 "donation_amount": 0
             },
@@ -2068,6 +2074,7 @@ elif menu == "사무실 미니 플리마켓":
                 "seller": "음악사랑",
                 "description": "소니 무선 헤드폰",
                 "image": "🎧",
+                "image_url": "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=300&h=200&fit=crop",
                 "status": "판매중",
                 "donation_amount": 0
             },
@@ -2079,6 +2086,7 @@ elif menu == "사무실 미니 플리마켓":
                 "seller": "백백백",
                 "description": "브랜드 백팩, 내구성 좋음",
                 "image": "🎒",
+                "image_url": "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=300&h=200&fit=crop",
                 "status": "판매중",
                 "donation_amount": 0
             },
@@ -2090,6 +2098,7 @@ elif menu == "사무실 미니 플리마켓":
                 "seller": "타임키퍼",
                 "description": "스위스 시계, 정품",
                 "image": "⌚",
+                "image_url": "https://images.unsplash.com/photo-1594534475808-b18fc33b045e?w=300&h=200&fit=crop",
                 "status": "판매중",
                 "donation_amount": 0
             },
@@ -2101,6 +2110,7 @@ elif menu == "사무실 미니 플리마켓":
                 "seller": "바이크러버",
                 "description": "로드바이크, 잘 관리됨",
                 "image": "🚲",
+                "image_url": "https://images.unsplash.com/photo-1571068316344-75bc76f77890?w=300&h=200&fit=crop",
                 "status": "판매중",
                 "donation_amount": 0
             },
@@ -2112,6 +2122,7 @@ elif menu == "사무실 미니 플리마켓":
                 "seller": "캠핑러",
                 "description": "텐트, 매트, 랜턴 포함",
                 "image": "⛺",
+                "image_url": "https://images.unsplash.com/photo-1487730116645-74489c95b41b?w=300&h=200&fit=crop",
                 "status": "판매중",
                 "donation_amount": 0
             },
@@ -2123,6 +2134,7 @@ elif menu == "사무실 미니 플리마켓":
                 "seller": "게이머",
                 "description": "플레이스테이션 5, 게임 3개 포함",
                 "image": "🎮",
+                "image_url": "https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?w=300&h=200&fit=crop",
                 "status": "판매중",
                 "donation_amount": 0
             }
@@ -2232,6 +2244,7 @@ elif menu == "사무실 미니 플리마켓":
                     "seller": seller_name,
                     "description": description,
                     "image": "📦",  # 기본 아이콘
+                    "image_url": "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=300&h=200&fit=crop",  # 기본 이미지
                     "status": "판매중",
                     "donation_amount": int(price * donation_rate / 100)
                 }
@@ -2273,7 +2286,7 @@ elif menu == "사무실 미니 플리마켓":
                         background-color: #f8f9fa;
                         margin-bottom: 10px;
                     ">
-                        <h3 style="margin: 0; color: #1e3a8a;">{item['image']}</h3>
+                        <img src="{item['image_url']}" style="width: 100%; height: 150px; object-fit: cover; border-radius: 8px; margin-bottom: 10px;">
                         <h4 style="margin: 10px 0; color: #333;">{item['name']}</h4>
                         <p style="margin: 5px 0; font-size: 16px; font-weight: bold; color: #28a745;">
                             {item['price']:,}원
@@ -2412,6 +2425,7 @@ elif menu == "사무실 미니 플리마켓":
                     "seller": "김개발",
                     "description": "2020년 모델, 상태 양호",
                     "image": "💻",
+                    "image_url": "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=300&h=200&fit=crop",
                     "status": "판매중",
                     "donation_amount": 0
                 },
@@ -2423,6 +2437,7 @@ elif menu == "사무실 미니 플리마켓":
                     "seller": "이책사",
                     "description": "1-7권 완전판, 새책 수준",
                     "image": "📚",
+                    "image_url": "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=200&fit=crop",
                     "status": "판매중",
                     "donation_amount": 0
                 },
@@ -2434,6 +2449,7 @@ elif menu == "사무실 미니 플리마켓":
                     "seller": "박운동",
                     "description": "사이즈 270, 몇 번만 착용",
                     "image": "👟",
+                    "image_url": "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300&h=200&fit=crop",
                     "status": "판매중",
                     "donation_amount": 0
                 },
@@ -2445,6 +2461,7 @@ elif menu == "사무실 미니 플리마켓":
                     "seller": "최패션",
                     "description": "L사이즈, 깨끗한 상태",
                     "image": "👕",
+                    "image_url": "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=300&h=200&fit=crop",
                     "status": "판매중",
                     "donation_amount": 0
                 },
@@ -2456,6 +2473,7 @@ elif menu == "사무실 미니 플리마켓":
                     "seller": "정폰케이스",
                     "description": "투명 케이스, 스크래치 없음",
                     "image": "📱",
+                    "image_url": "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=300&h=200&fit=crop",
                     "status": "판매중",
                     "donation_amount": 0
                 },
@@ -2467,6 +2485,7 @@ elif menu == "사무실 미니 플리마켓":
                     "seller": "한커피",
                     "description": "네스프레소 캡슐 머신",
                     "image": "☕",
+                    "image_url": "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=300&h=200&fit=crop",
                     "status": "판매중",
                     "donation_amount": 0
                 },
@@ -2478,6 +2497,7 @@ elif menu == "사무실 미니 플리마켓":
                     "seller": "음악사랑",
                     "description": "소니 무선 헤드폰",
                     "image": "🎧",
+                    "image_url": "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=300&h=200&fit=crop",
                     "status": "판매중",
                     "donation_amount": 0
                 },
@@ -2489,6 +2509,7 @@ elif menu == "사무실 미니 플리마켓":
                     "seller": "백백백",
                     "description": "브랜드 백팩, 내구성 좋음",
                     "image": "🎒",
+                    "image_url": "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=300&h=200&fit=crop",
                     "status": "판매중",
                     "donation_amount": 0
                 },
@@ -2500,6 +2521,7 @@ elif menu == "사무실 미니 플리마켓":
                     "seller": "타임키퍼",
                     "description": "스위스 시계, 정품",
                     "image": "⌚",
+                    "image_url": "https://images.unsplash.com/photo-1594534475808-b18fc33b045e?w=300&h=200&fit=crop",
                     "status": "판매중",
                     "donation_amount": 0
                 },
@@ -2511,6 +2533,7 @@ elif menu == "사무실 미니 플리마켓":
                     "seller": "바이크러버",
                     "description": "로드바이크, 잘 관리됨",
                     "image": "🚲",
+                    "image_url": "https://images.unsplash.com/photo-1571068316344-75bc76f77890?w=300&h=200&fit=crop",
                     "status": "판매중",
                     "donation_amount": 0
                 },
@@ -2522,6 +2545,7 @@ elif menu == "사무실 미니 플리마켓":
                     "seller": "캠핑러",
                     "description": "텐트, 매트, 랜턴 포함",
                     "image": "⛺",
+                    "image_url": "https://images.unsplash.com/photo-1487730116645-74489c95b41b?w=300&h=200&fit=crop",
                     "status": "판매중",
                     "donation_amount": 0
                 },
@@ -2533,6 +2557,7 @@ elif menu == "사무실 미니 플리마켓":
                     "seller": "게이머",
                     "description": "플레이스테이션 5, 게임 3개 포함",
                     "image": "🎮",
+                    "image_url": "https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?w=300&h=200&fit=crop",
                     "status": "판매중",
                     "donation_amount": 0
                 }
