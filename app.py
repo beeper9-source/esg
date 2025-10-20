@@ -1428,13 +1428,26 @@ elif menu == "소등·절전 챌린지":
         total_power_saved = sum(building['power_saved'] for building in sample_buildings.values())
         total_bill_saved = total_power_saved * 120  # kWh당 120원
         
+        # 탄소감축량 계산을 위한 변수들
+        P = 0.05  # 조명 1개의 소비전력 (kW)
+        H = np.random.randint(2, 6)  # 소등 시간 (시간 단위, hr)
+        N = np.random.randint(100, 200)  # 조명 개수
+        EF = 0.459  # 전력 배출계수 (kgCO₂eq/kWh, 한국전력 기준)
+        carbon_reduction = P * H * N * EF  # 탄소감축량 계산
+        
         st.session_state.power_saving_data = {
             "buildings": sample_buildings,
             "total_participants": total_participants,
             "total_power_saved": total_power_saved,
             "total_bill_saved": total_bill_saved,
             "participation_rate": np.random.randint(85, 95),
-            "average_daily_saving": total_power_saved // 30
+            "average_daily_saving": total_power_saved // 30,
+            # 탄소감축량 관련
+            "P": P,
+            "H": H,
+            "N": N,
+            "EF": EF,
+            "carbon_reduction": carbon_reduction
         }
 
     st.markdown("---")
@@ -1514,7 +1527,7 @@ elif menu == "소등·절전 챌린지":
     # 전체 통계
     st.subheader("📊 전체 통계")
     
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3, col4, col5 = st.columns(5)
     
     with col1:
         st.metric(
@@ -1542,6 +1555,13 @@ elif menu == "소등·절전 챌린지":
             label="참여율",
             value=f"{st.session_state.power_saving_data['participation_rate']}%",
             delta=f"+{np.random.randint(3, 8)}%"
+        )
+    
+    with col5:
+        st.metric(
+            label="탄소감축량",
+            value=f"{st.session_state.power_saving_data['carbon_reduction']:.2f}kg",
+            delta="CO₂eq"
         )
 
     st.markdown("---")
@@ -1586,6 +1606,82 @@ elif menu == "소등·절전 챌린지":
         yaxis_title="참여자 수"
     )
     st.plotly_chart(fig_participants, use_container_width=True)
+
+    st.markdown("---")
+
+    # 탄소감축량 지표 산식
+    st.subheader("📊 탄소감축량 지표 산식")
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.info("""
+        **🌱 탄소감축량 계산 공식**
+        ```
+        감축량(kgCO₂eq) = P × H × N × EF
+        ```
+        **📋 변수 정의**
+        - **P**: 조명 1개의 소비전력 (kW)
+        - **H**: 소등 시간 (시간 단위, hr)
+        - **N**: 조명 개수
+        - **EF**: 전력 배출계수 (0.459 kgCO₂eq/kWh, 한국전력 기준)
+        **🎯 계산 기준**
+        - 조명 1개당 소비전력: 0.05kW
+        - 소등 시간: 2-6시간 (평균 4시간)
+        - 조명 개수: 100-200개
+        - 한국전력 배출계수: 0.459 kgCO₂eq/kWh
+        """)
+    
+    with col2:
+        st.success("""
+        **⚡ 전력 배출계수 정보**
+        ```
+        EF = 0.459 kgCO₂eq/kWh
+        ```
+        **📋 배출계수 기준**
+        - **대한민국 공식 계수**: 0.459 kgCO₂eq/kWh
+        - **동일 계수**: 0.459 tCO₂eq/MWh
+        - **국가별 차이**: 국가에 따라 달라짐
+        - **한국전력 기준**: 공식 인증 계수 사용
+        **🌍 환경 효과**
+        • **탄소 감축**: 직접적인 CO₂ 배출량 감소
+        • **에너지 절약**: 전력 사용량 감소
+        • **친환경 문화**: 지속가능한 에너지 사용
+        • **경제 효과**: 전기요금 절약
+        """)
+    
+    st.subheader("🧮 실시간 계산 예시")
+    current_data = st.session_state.power_saving_data
+    carbon_example = current_data['P'] * current_data['H'] * current_data['N'] * current_data['EF']
+    st.markdown(f"""
+    <div style="
+        border: 2px solid #28a745;
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        background-color: #d4edda;
+        margin-bottom: 10px;
+    ">
+        <h3 style="margin: 0; color: #155724;">📈 현재 상황</h3>
+        <p style="margin: 10px 0; font-size: 18px; color: #155724;">
+            <strong>조명 소비전력:</strong> {current_data['P']}kW
+        </p>
+        <p style="margin: 10px 0; font-size: 18px; color: #155724;">
+            <strong>소등 시간:</strong> {current_data['H']}시간
+        </p>
+        <p style="margin: 10px 0; font-size: 18px; color: #155724;">
+            <strong>조명 개수:</strong> {current_data['N']}개
+        </p>
+        <p style="margin: 10px 0; font-size: 18px; color: #155724;">
+            <strong>배출계수:</strong> {current_data['EF']} kgCO₂eq/kWh
+        </p>
+        <p style="margin: 10px 0; font-size: 18px; color: #155724;">
+            <strong>계산식:</strong> {current_data['P']} × {current_data['H']} × {current_data['N']} × {current_data['EF']}
+        </p>
+        <p style="margin: 10px 0; font-size: 24px; font-weight: bold; color: #155724;">
+            <strong>= {carbon_example:.2f}kg CO₂eq</strong>
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
 
     st.markdown("---")
 
@@ -1674,13 +1770,26 @@ elif menu == "소등·절전 챌린지":
             total_power_saved = sum(building['power_saved'] for building in sample_buildings.values())
             total_bill_saved = total_power_saved * 120
             
+            # 탄소감축량 계산을 위한 변수들
+            P = 0.05  # 조명 1개의 소비전력 (kW)
+            H = np.random.randint(2, 6)  # 소등 시간 (시간 단위, hr)
+            N = np.random.randint(100, 200)  # 조명 개수
+            EF = 0.459  # 전력 배출계수 (kgCO₂eq/kWh, 한국전력 기준)
+            carbon_reduction = P * H * N * EF  # 탄소감축량 계산
+            
             st.session_state.power_saving_data = {
                 "buildings": sample_buildings,
                 "total_participants": total_participants,
                 "total_power_saved": total_power_saved,
                 "total_bill_saved": total_bill_saved,
                 "participation_rate": np.random.randint(85, 95),
-                "average_daily_saving": total_power_saved // 30
+                "average_daily_saving": total_power_saved // 30,
+                # 탄소감축량 관련
+                "P": P,
+                "H": H,
+                "N": N,
+                "EF": EF,
+                "carbon_reduction": carbon_reduction
             }
             st.success("샘플 데이터로 초기화되었습니다!")
             st.rerun()
@@ -1716,6 +1825,24 @@ elif menu == "플로깅 데이":
         paper_waste = np.random.randint(15, 30)
         other_waste = np.random.randint(55, 70)
         
+        # 순환율 계산을 위한 변수들 (톤 단위)
+        R = np.random.randint(15, 25)  # 실질 재활용량 (톤)
+        C = np.random.randint(8, 15)   # 자원순환으로 인정된 물량 (톤)
+        W = np.random.randint(40, 60)  # 폐기물 총 발생량 (톤)
+        
+        # 기존 순환율 계산
+        original_circular_rate = ((R + C) / (W + C)) * 100
+        
+        # 플로깅 활동으로 인한 개선량
+        delta_R = np.random.randint(2, 5)  # 재활용량 증가 (톤)
+        delta_C = np.random.randint(1, 3)  # 자원순환량 증가 (톤)
+        
+        # 개선된 순환율 계산
+        improved_circular_rate = (((R + delta_R) + (C + delta_C)) / (W + C + delta_C)) * 100
+        
+        # 순환율 개선 정도
+        circular_rate_improvement = improved_circular_rate - original_circular_rate
+        
         # 주간 데이터 생성
         weekly_data = []
         days = ['월', '화', '수', '목', '금']
@@ -1743,7 +1870,16 @@ elif menu == "플로깅 데이":
             "paper_waste": paper_waste,
             "other_waste": other_waste,
             "weekly_data": weekly_data,
-            "participation_rate": np.random.randint(75, 90)
+            "participation_rate": np.random.randint(75, 90),
+            # 순환율 관련
+            "R": R,
+            "C": C,
+            "W": W,
+            "delta_R": delta_R,
+            "delta_C": delta_C,
+            "original_circular_rate": original_circular_rate,
+            "improved_circular_rate": improved_circular_rate,
+            "circular_rate_improvement": circular_rate_improvement
         }
 
     st.markdown("---")
@@ -1850,7 +1986,7 @@ elif menu == "플로깅 데이":
     # 주간 현황
     st.subheader("📊 주간 현황")
     
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3, col4, col5 = st.columns(5)
     
     with col1:
         st.metric(
@@ -1878,6 +2014,13 @@ elif menu == "플로깅 데이":
             label="환경 점수",
             value=f"{st.session_state.plogging_data['total_waste_collected'] * 2}점",
             delta=f"+{np.random.randint(10, 30)}점"
+        )
+    
+    with col5:
+        st.metric(
+            label="순환율 개선",
+            value=f"{st.session_state.plogging_data['circular_rate_improvement']:.1f}%p",
+            delta="개선"
         )
 
     st.markdown("---")
@@ -1926,6 +2069,84 @@ elif menu == "플로깅 데이":
 
     st.markdown("---")
 
+    # 순환율 개선 지표 산식
+    st.subheader("📊 순환율 개선 지표 산식")
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.info("""
+        **♻️ 기본 순환율 산정식**
+        ```
+        순환율(%) = (R + C) / (W + C) × 100
+        ```
+        **📋 변수 정의**
+        - **R**: 실질 재활용량 (톤 단위)
+        - **C**: 자원순환으로 인정된 물량 (재사용, 에너지회수량 등, 톤)
+        - **W**: 폐기물 총 발생량 (톤 단위)
+        **🎯 계산 기준**
+        - 재활용과 자원순환 인정분을 폐기물 총량과 합산한 분모에 대비해 비율 산출
+        - 플로깅 활동으로 수거된 쓰레기의 재활용 및 자원순환 효과 반영
+        """)
+    
+    with col2:
+        st.success("""
+        **📈 순환율 개선 계산**
+        ```
+        개선 순환율 = ((R+ΔR) + (C+ΔC)) / (W + C + ΔC) × 100
+        ```
+        **📋 개선 변수**
+        - **ΔR**: 재활용량 증가분 (톤)
+        - **ΔC**: 자원순환량 증가분 (톤)
+        **🎯 개선 정도**
+        ```
+        Δ순환율 = 개선 순환율 - 기존 순환율
+        ```
+        **🌍 환경 효과**
+        • **재활용률 향상**: 쓰레기 수거로 재활용 가능 물질 증가
+        • **자원순환 증대**: 에너지 회수 및 재사용 물량 증가
+        • **폐기물 감소**: 총 발생량 대비 순환 이용률 향상
+        """)
+    
+    st.subheader("🧮 실시간 계산 예시")
+    current_data = st.session_state.plogging_data
+    original_rate = current_data['original_circular_rate']
+    improved_rate = current_data['improved_circular_rate']
+    improvement = current_data['circular_rate_improvement']
+    
+    st.markdown(f"""
+    <div style="
+        border: 2px solid #28a745;
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        background-color: #d4edda;
+        margin-bottom: 10px;
+    ">
+        <h3 style="margin: 0; color: #155724;">📈 현재 상황</h3>
+        <div style="display: flex; justify-content: space-around; margin: 20px 0;">
+            <div>
+                <p style="margin: 5px 0; font-size: 16px; color: #155724;">
+                    <strong>기존 순환율:</strong><br>
+                    ({current_data['R']} + {current_data['C']}) / ({current_data['W']} + {current_data['C']}) × 100<br>
+                    = <strong>{original_rate:.1f}%</strong>
+                </p>
+            </div>
+            <div>
+                <p style="margin: 5px 0; font-size: 16px; color: #155724;">
+                    <strong>개선 순환율:</strong><br>
+                    (({current_data['R']}+{current_data['delta_R']}) + ({current_data['C']}+{current_data['delta_C']})) / ({current_data['W']} + {current_data['C']} + {current_data['delta_C']}) × 100<br>
+                    = <strong>{improved_rate:.1f}%</strong>
+                </p>
+            </div>
+        </div>
+        <p style="margin: 10px 0; font-size: 24px; font-weight: bold; color: #155724;">
+            <strong>순환율 개선: +{improvement:.1f}%p</strong>
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("---")
+
     # 환경 효과
     st.subheader("🌱 환경 효과")
     
@@ -1970,6 +2191,24 @@ elif menu == "플로깅 데이":
             paper_waste = np.random.randint(15, 30)
             other_waste = np.random.randint(55, 70)
             
+            # 순환율 계산을 위한 변수들 (톤 단위)
+            R = np.random.randint(15, 25)  # 실질 재활용량 (톤)
+            C = np.random.randint(8, 15)   # 자원순환으로 인정된 물량 (톤)
+            W = np.random.randint(40, 60)  # 폐기물 총 발생량 (톤)
+            
+            # 기존 순환율 계산
+            original_circular_rate = ((R + C) / (W + C)) * 100
+            
+            # 플로깅 활동으로 인한 개선량
+            delta_R = np.random.randint(2, 5)  # 재활용량 증가 (톤)
+            delta_C = np.random.randint(1, 3)  # 자원순환량 증가 (톤)
+            
+            # 개선된 순환율 계산
+            improved_circular_rate = (((R + delta_R) + (C + delta_C)) / (W + C + delta_C)) * 100
+            
+            # 순환율 개선 정도
+            circular_rate_improvement = improved_circular_rate - original_circular_rate
+            
             weekly_data = []
             days = ['월', '화', '수', '목', '금']
             for i, day in enumerate(days):
@@ -1996,7 +2235,16 @@ elif menu == "플로깅 데이":
                 "paper_waste": paper_waste,
                 "other_waste": other_waste,
                 "weekly_data": weekly_data,
-                "participation_rate": np.random.randint(75, 90)
+                "participation_rate": np.random.randint(75, 90),
+                # 순환율 관련
+                "R": R,
+                "C": C,
+                "W": W,
+                "delta_R": delta_R,
+                "delta_C": delta_C,
+                "original_circular_rate": original_circular_rate,
+                "improved_circular_rate": improved_circular_rate,
+                "circular_rate_improvement": circular_rate_improvement
             }
             st.success("샘플 데이터로 초기화되었습니다!")
             st.rerun()
@@ -2030,11 +2278,25 @@ elif menu == "탄소 발자국 챌린지":
         public_transport = np.random.randint(60, 100)
         bicycle_usage = np.random.randint(40, 80)
         
+        # 탄소감축량 계산을 위한 변수들
+        P_elevator = 0.05  # 엘리베이터 1회 이용 시 소비 전력 (kWh)
+        EF = 0.459  # 전력 배출계수 (kgCO₂eq/kWh)
+        E_car = 2.2  # 자가용 1회 평균 배출량 (kgCO₂eq)
+        E_transit = 0.6  # 대중교통 1회 평균 배출량 (kgCO₂eq)
+        
+        # 각 항목별 탄소감축량 계산
+        C_stairs = stairs_usage * P_elevator * EF  # 계단 이용에 의한 감축량
+        C_transit = public_transport * (E_car - E_transit)  # 대중교통 이용에 의한 감축량
+        C_bike = bicycle_usage * E_car  # 자전거 이용에 의한 감축량
+        
+        # 총 탄소감축량
+        total_carbon_reduction = C_stairs + C_transit + C_bike
+        
         # 교통수단별 탄소 감축량 (kg CO2)
         carbon_savings = {
-            'stairs': stairs_usage * 0.05,  # 계단 이용시 엘리베이터 대비 절약
-            'public_transport': public_transport * 0.3,  # 대중교통 이용시 개인차 대비 절약
-            'bicycle': bicycle_usage * 0.2  # 자전거 이용시 개인차 대비 절약
+            'stairs': C_stairs,
+            'public_transport': C_transit,
+            'bicycle': C_bike
         }
         
         # 일별 데이터 생성 (최근 30일)
@@ -2064,7 +2326,16 @@ elif menu == "탄소 발자국 챌린지":
             "bicycle_usage": bicycle_usage,
             "carbon_savings": carbon_savings,
             "daily_data": daily_data,
-            "participation_rate": np.random.randint(70, 85)
+            "participation_rate": np.random.randint(70, 85),
+            # 탄소감축량 관련
+            "P_elevator": P_elevator,
+            "EF": EF,
+            "E_car": E_car,
+            "E_transit": E_transit,
+            "C_stairs": C_stairs,
+            "C_transit": C_transit,
+            "C_bike": C_bike,
+            "total_carbon_reduction": total_carbon_reduction
         }
 
     st.markdown("---")
@@ -2178,7 +2449,7 @@ elif menu == "탄소 발자국 챌린지":
     # 전체 현황
     st.subheader("📊 전체 현황")
     
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3, col4, col5 = st.columns(5)
     
     with col1:
         st.metric(
@@ -2207,6 +2478,13 @@ elif menu == "탄소 발자국 챌린지":
             label="환경 점수",
             value=f"{int(total_carbon_saved * 10)}점",
             delta=f"+{np.random.randint(10, 30)}점"
+        )
+    
+    with col5:
+        st.metric(
+            label="총 탄소감축량",
+            value=f"{st.session_state.carbon_footprint_data['total_carbon_reduction']:.2f}kg",
+            delta="CO₂eq"
         )
 
     st.markdown("---")
@@ -2260,6 +2538,101 @@ elif menu == "탄소 발자국 챌린지":
 
     st.markdown("---")
 
+    # 탄소감축량 지표 산식
+    st.subheader("📊 탄소감축량 지표 산식")
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.info("""
+        **👣 기본 산식 구조**
+        ```
+        총 감축량(kgCO₂eq) = C_stairs + C_transit + C_bike
+        ```
+        **📋 각 항목 산정식**
+        
+        **🪜 계단 이용에 의한 감축량**
+        ```
+        C_stairs = N_stairs × P_elevator × EF
+        ```
+        - **N_stairs**: 계단 이용 횟수
+        - **P_elevator**: 엘리베이터 1회 이용 시 소비 전력 (kWh)
+        - **EF**: 전력 배출계수 (kgCO₂eq/kWh)
+        
+        **🚌 대중교통 이용에 의한 감축량**
+        ```
+        C_transit = N_transit × (E_car - E_transit)
+        ```
+        - **N_transit**: 대중교통 이용 횟수
+        - **E_car**: 자가용 1회 평균 배출량 (kgCO₂eq)
+        - **E_transit**: 대중교통 1회 평균 배출량 (kgCO₂eq)
+        """)
+    
+    with col2:
+        st.success("""
+        **🚲 자전거 이용에 의한 감축량**
+        ```
+        C_bike = N_bike × E_car
+        ```
+        - **N_bike**: 자전거 이용 횟수
+        - **E_car**: 자가용 1회 배출량 (kgCO₂eq)
+        
+        **🎯 최종 통합 산식**
+        ```
+        총 감축량 = N_stairs × P_elevator × EF
+                  + N_transit × (E_car - E_transit)
+                  + N_bike × E_car
+        ```
+        **📊 예시값**
+        - **P_elevator**: 0.05 kWh/회
+        - **EF**: 0.459 kgCO₂eq/kWh
+        - **E_car**: 2.2 kgCO₂eq/회
+        - **E_transit**: 0.6 kgCO₂eq/회
+        """)
+    
+    st.subheader("🧮 실시간 계산 예시")
+    current_data = st.session_state.carbon_footprint_data
+    
+    st.markdown(f"""
+    <div style="
+        border: 2px solid #28a745;
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        background-color: #d4edda;
+        margin-bottom: 10px;
+    ">
+        <h3 style="margin: 0; color: #155724;">📈 현재 상황</h3>
+        <div style="display: flex; justify-content: space-around; margin: 20px 0;">
+            <div>
+                <p style="margin: 5px 0; font-size: 16px; color: #155724;">
+                    <strong>계단 이용:</strong><br>
+                    {current_data['stairs_usage']} × {current_data['P_elevator']} × {current_data['EF']}<br>
+                    = <strong>{current_data['C_stairs']:.2f}kg CO₂eq</strong>
+                </p>
+            </div>
+            <div>
+                <p style="margin: 5px 0; font-size: 16px; color: #155724;">
+                    <strong>대중교통:</strong><br>
+                    {current_data['public_transport']} × ({current_data['E_car']} - {current_data['E_transit']})<br>
+                    = <strong>{current_data['C_transit']:.2f}kg CO₂eq</strong>
+                </p>
+            </div>
+            <div>
+                <p style="margin: 5px 0; font-size: 16px; color: #155724;">
+                    <strong>자전거:</strong><br>
+                    {current_data['bicycle_usage']} × {current_data['E_car']}<br>
+                    = <strong>{current_data['C_bike']:.2f}kg CO₂eq</strong>
+                </p>
+            </div>
+        </div>
+        <p style="margin: 10px 0; font-size: 24px; font-weight: bold; color: #155724;">
+            <strong>총 탄소감축량: {current_data['total_carbon_reduction']:.2f}kg CO₂eq</strong>
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("---")
+
     # 환경 효과
     st.subheader("🌱 환경 효과")
     
@@ -2300,10 +2673,24 @@ elif menu == "탄소 발자국 챌린지":
             public_transport = np.random.randint(60, 100)
             bicycle_usage = np.random.randint(40, 80)
             
+            # 탄소감축량 계산을 위한 변수들
+            P_elevator = 0.05  # 엘리베이터 1회 이용 시 소비 전력 (kWh)
+            EF = 0.459  # 전력 배출계수 (kgCO₂eq/kWh)
+            E_car = 2.2  # 자가용 1회 평균 배출량 (kgCO₂eq)
+            E_transit = 0.6  # 대중교통 1회 평균 배출량 (kgCO₂eq)
+            
+            # 각 항목별 탄소감축량 계산
+            C_stairs = stairs_usage * P_elevator * EF  # 계단 이용에 의한 감축량
+            C_transit = public_transport * (E_car - E_transit)  # 대중교통 이용에 의한 감축량
+            C_bike = bicycle_usage * E_car  # 자전거 이용에 의한 감축량
+            
+            # 총 탄소감축량
+            total_carbon_reduction = C_stairs + C_transit + C_bike
+            
             carbon_savings = {
-                'stairs': stairs_usage * 0.05,
-                'public_transport': public_transport * 0.3,
-                'bicycle': bicycle_usage * 0.2
+                'stairs': C_stairs,
+                'public_transport': C_transit,
+                'bicycle': C_bike
             }
             
             daily_data = []
@@ -2332,7 +2719,16 @@ elif menu == "탄소 발자국 챌린지":
                 "bicycle_usage": bicycle_usage,
                 "carbon_savings": carbon_savings,
                 "daily_data": daily_data,
-                "participation_rate": np.random.randint(70, 85)
+                "participation_rate": np.random.randint(70, 85),
+                # 탄소감축량 관련
+                "P_elevator": P_elevator,
+                "EF": EF,
+                "E_car": E_car,
+                "E_transit": E_transit,
+                "C_stairs": C_stairs,
+                "C_transit": C_transit,
+                "C_bike": C_bike,
+                "total_carbon_reduction": total_carbon_reduction
             }
             st.success("샘플 데이터로 초기화되었습니다!")
             st.rerun()
