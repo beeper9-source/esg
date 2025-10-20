@@ -934,13 +934,22 @@ elif menu == "페이퍼리스 데이":
                     'is_paperless': False
                 })
         
+        # 탄소감축량 계산을 위한 변수들
+        N = np.random.randint(5000, 15000)  # 줄인 종이 사용 장수 (장)
+        Ep = 0.00288  # A4 1장당 배출계수 (kg CO₂eq/장)
+        carbon_reduction = N * Ep  # 탄소감축량 계산
+        
         st.session_state.paperless_data = {
             "weekly_data": weekly_data,
             "total_prints": sum(day['prints'] for day in weekly_data),
             "total_paper_purchase": sum(day['paper_purchase'] for day in weekly_data),
             "digital_adoption_rate": np.random.randint(65, 80),
             "paper_savings": np.random.randint(20, 35),
-            "cost_savings": np.random.randint(500, 800)  # 천원 단위
+            "cost_savings": np.random.randint(500, 800),  # 천원 단위
+            # 탄소감축량 관련
+            "N": N,
+            "Ep": Ep,
+            "carbon_reduction": carbon_reduction
         }
 
     st.markdown("---")
@@ -972,7 +981,7 @@ elif menu == "페이퍼리스 데이":
     # 주간 현황
     st.subheader("📊 주간 현황")
     
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3, col4, col5 = st.columns(5)
     
     with col1:
         st.metric(
@@ -1000,6 +1009,13 @@ elif menu == "페이퍼리스 데이":
             label="비용 절약",
             value=f"{st.session_state.paperless_data['cost_savings']}천원",
             delta=f"+{np.random.randint(50, 100)}천원"
+        )
+    
+    with col5:
+        st.metric(
+            label="탄소감축량",
+            value=f"{st.session_state.paperless_data['carbon_reduction']:.2f}kg",
+            delta="CO₂eq"
         )
 
     st.markdown("---")
@@ -1104,16 +1120,87 @@ elif menu == "페이퍼리스 데이":
             <h3 style="margin: 0; color: #004085;">💻</h3>
             <h4 style="margin: 10px 0; color: #004085;">디지털 도구 사용</h4>
             <p style="margin: 5px 0; font-size: 16px; color: #004085;">
-                전자결재: {e_approval}%
+                Knox meeting: {knox_meeting}%
             </p>
             <p style="margin: 5px 0; font-size: 16px; color: #004085;">
                 PDF 회의: {pdf_meeting}%
             </p>
         </div>
         """.format(
-            e_approval=np.random.randint(85, 95),
+            knox_meeting=np.random.randint(85, 95),
             pdf_meeting=np.random.randint(70, 85)
         ), unsafe_allow_html=True)
+
+    st.markdown("---")
+
+    # 탄소감축량 지표 산식 설명
+    st.subheader("📊 탄소감축량 지표 산식")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.info("""
+        **🌱 탄소감축량 계산 공식**
+        
+        ```
+        감축량(kg CO₂eq) = N × Ep
+        ```
+        
+        **📋 변수 정의**
+        - **N**: 줄인 종이 사용 장수 (장)
+        - **Ep**: A4 1장당 배출계수 (0.00288 kg CO₂eq/장)
+        
+        **🎯 계산 기준**
+        - A4 용지 1장당 탄소배출량: 0.00288 kg CO₂eq
+        - 국제 탄소 배출 계수 기준 적용
+        - 종이 생산 과정의 탄소발자국 고려
+        """)
+    
+    with col2:
+        st.success("""
+        **📄 예시 계산**
+        
+        연간 10,000장을 절약했다면:
+        
+        ```
+        10,000 × 0.00288 = 28.8 kg CO₂eq
+        ```
+        
+        **🌍 환경 효과**
+        • **산림 보호**: 종이 사용 감소로 나무 보존
+        • **탄소 감축**: 직접적인 CO₂ 배출량 감소
+        • **에너지 절약**: 종이 생산 과정 에너지 절약
+        • **폐기물 감소**: 종이 폐기물 발생량 감소
+        """)
+    
+    # 실시간 계산 예시
+    st.markdown("---")
+    st.subheader("🧮 실시간 계산 예시")
+    
+    current_data = st.session_state.paperless_data
+    carbon_example = current_data['N'] * current_data['Ep']
+    
+    st.markdown(f"""
+    <div style="
+        border: 2px solid #28a745;
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        background-color: #d4edda;
+        margin-bottom: 10px;
+    ">
+        <h3 style="margin: 0; color: #155724;">📈 현재 상황</h3>
+        <p style="margin: 10px 0; font-size: 18px; color: #155724;">
+            <strong>줄인 종이 사용량:</strong> {current_data['N']:,}장
+        </p>
+        <p style="margin: 10px 0; font-size: 18px; color: #155724;">
+            <strong>계산식:</strong> {current_data['N']:,}장 × {current_data['Ep']}kg CO₂eq/장
+        </p>
+        <p style="margin: 10px 0; font-size: 24px; font-weight: bold; color: #155724;">
+            <strong>= {carbon_example:.2f}kg CO₂eq</strong>
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
 
     st.markdown("---")
 
@@ -1177,13 +1264,22 @@ elif menu == "페이퍼리스 데이":
                         'is_paperless': False
                     })
             
+            # 탄소감축량 계산을 위한 변수들
+            N = np.random.randint(5000, 15000)  # 줄인 종이 사용 장수 (장)
+            Ep = 0.00288  # A4 1장당 배출계수 (kg CO₂eq/장)
+            carbon_reduction = N * Ep  # 탄소감축량 계산
+            
             st.session_state.paperless_data = {
                 "weekly_data": weekly_data,
                 "total_prints": sum(day['prints'] for day in weekly_data),
                 "total_paper_purchase": sum(day['paper_purchase'] for day in weekly_data),
                 "digital_adoption_rate": np.random.randint(65, 80),
                 "paper_savings": np.random.randint(20, 35),
-                "cost_savings": np.random.randint(500, 800)
+                "cost_savings": np.random.randint(500, 800),
+                # 탄소감축량 관련
+                "N": N,
+                "Ep": Ep,
+                "carbon_reduction": carbon_reduction
             }
             st.success("샘플 데이터로 초기화되었습니다!")
             st.rerun()
