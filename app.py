@@ -424,9 +424,37 @@ elif menu == "계단 오르기":
         }
     }
 
-    # 세션 상태 초기화
+    # 세션 상태 초기화 (샘플 데이터 포함)
     if 'stair_climbing_data' not in st.session_state:
-        st.session_state.stair_climbing_data = buildings.copy()
+        # 샘플 데이터 생성
+        sample_buildings = {
+            "잠실": {
+                "name": "잠실 사옥",
+                "image": "🏢",
+                "participants": np.random.randint(15, 35)  # 15-35명 사이 랜덤
+            },
+            "판교IT": {
+                "name": "판교 IT 사옥", 
+                "image": "🏢",
+                "participants": np.random.randint(20, 40)  # 20-40명 사이 랜덤
+            },
+            "판교물류": {
+                "name": "판교 물류 사옥",
+                "image": "🏢", 
+                "participants": np.random.randint(10, 25)  # 10-25명 사이 랜덤
+            },
+            "상암": {
+                "name": "상암 사옥",
+                "image": "🏢",
+                "participants": np.random.randint(12, 30)  # 12-30명 사이 랜덤
+            },
+            "수원": {
+                "name": "수원 사옥",
+                "image": "🏢",
+                "participants": np.random.randint(8, 20)   # 8-20명 사이 랜덤
+            }
+        }
+        st.session_state.stair_climbing_data = sample_buildings
 
     st.markdown("---")
 
@@ -529,8 +557,36 @@ elif menu == "계단 오르기":
     
     with col1:
         if st.button("📊 데이터 초기화", use_container_width=True):
-            st.session_state.stair_climbing_data = buildings.copy()
-            st.success("모든 데이터가 초기화되었습니다!")
+            # 샘플 데이터로 리셋
+            sample_buildings = {
+                "잠실": {
+                    "name": "잠실 사옥",
+                    "image": "🏢",
+                    "participants": np.random.randint(15, 35)
+                },
+                "판교IT": {
+                    "name": "판교 IT 사옥", 
+                    "image": "🏢",
+                    "participants": np.random.randint(20, 40)
+                },
+                "판교물류": {
+                    "name": "판교 물류 사옥",
+                    "image": "🏢", 
+                    "participants": np.random.randint(10, 25)
+                },
+                "상암": {
+                    "name": "상암 사옥",
+                    "image": "🏢",
+                    "participants": np.random.randint(12, 30)
+                },
+                "수원": {
+                    "name": "수원 사옥",
+                    "image": "🏢",
+                    "participants": np.random.randint(8, 20)
+                }
+            }
+            st.session_state.stair_climbing_data = sample_buildings
+            st.success("샘플 데이터로 초기화되었습니다!")
             st.rerun()
     
     with col2:
@@ -550,15 +606,34 @@ elif menu == "일회용품 ZERO 챌린지":
         "goal": "일회용품 사용률 50% 감소"
     }
 
-    # 세션 상태 초기화
+    # 세션 상태 초기화 (샘플 데이터 포함)
     if 'zero_challenge_data' not in st.session_state:
+        # 샘플 데이터 생성
+        personal_cups = np.random.randint(25, 50)
+        tumblers = np.random.randint(30, 60)
+        lunchboxes = np.random.randint(15, 35)
+        total_participants = personal_cups + tumblers + lunchboxes
+        single_use_reduction = personal_cups + tumblers + (lunchboxes * 2)  # 도시락은 2개 절약
+        
+        # 시간대별 샘플 등록 데이터 생성
+        sample_registrations = []
+        for i in range(np.random.randint(20, 40)):  # 20-40개의 샘플 등록
+            hour = np.random.randint(8, 18)  # 8시-18시 사이
+            minute = np.random.randint(0, 60)
+            usage_type = np.random.choice(['개인 컵', '텀블러', '도시락'])
+            sample_registrations.append({
+                'type': usage_type,
+                'timestamp': f"{hour:02d}:{minute:02d}",
+                'date': datetime.now().strftime("%Y-%m-%d")
+            })
+        
         st.session_state.zero_challenge_data = {
-            "participants": 0,
-            "personal_cups": 0,
-            "tumblers": 0,
-            "lunchboxes": 0,
-            "single_use_reduction": 0,
-            "daily_registrations": []
+            "participants": total_participants,
+            "personal_cups": personal_cups,
+            "tumblers": tumblers,
+            "lunchboxes": lunchboxes,
+            "single_use_reduction": single_use_reduction,
+            "daily_registrations": sample_registrations
         }
 
     st.markdown("---")
@@ -786,15 +861,34 @@ elif menu == "일회용품 ZERO 챌린지":
     
     with col1:
         if st.button("📊 데이터 초기화", use_container_width=True):
+            # 샘플 데이터로 리셋
+            personal_cups = np.random.randint(25, 50)
+            tumblers = np.random.randint(30, 60)
+            lunchboxes = np.random.randint(15, 35)
+            total_participants = personal_cups + tumblers + lunchboxes
+            single_use_reduction = personal_cups + tumblers + (lunchboxes * 2)
+            
+            # 시간대별 샘플 등록 데이터 생성
+            sample_registrations = []
+            for i in range(np.random.randint(20, 40)):
+                hour = np.random.randint(8, 18)
+                minute = np.random.randint(0, 60)
+                usage_type = np.random.choice(['개인 컵', '텀블러', '도시락'])
+                sample_registrations.append({
+                    'type': usage_type,
+                    'timestamp': f"{hour:02d}:{minute:02d}",
+                    'date': datetime.now().strftime("%Y-%m-%d")
+                })
+            
             st.session_state.zero_challenge_data = {
-                "participants": 0,
-                "personal_cups": 0,
-                "tumblers": 0,
-                "lunchboxes": 0,
-                "single_use_reduction": 0,
-                "daily_registrations": []
+                "participants": total_participants,
+                "personal_cups": personal_cups,
+                "tumblers": tumblers,
+                "lunchboxes": lunchboxes,
+                "single_use_reduction": single_use_reduction,
+                "daily_registrations": sample_registrations
             }
-            st.success("모든 데이터가 초기화되었습니다!")
+            st.success("샘플 데이터로 초기화되었습니다!")
             st.rerun()
     
     with col2:
